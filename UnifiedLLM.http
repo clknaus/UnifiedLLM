@@ -1,0 +1,6 @@
+@UnifiedLLM_HostAddress = http://localhost:5015
+
+GET {{UnifiedLLM_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
