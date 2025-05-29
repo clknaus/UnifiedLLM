@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Core.Models;
+namespace Application.Models;
 public class OpenWebUIChatResponse
 {
     [JsonPropertyName("id")]

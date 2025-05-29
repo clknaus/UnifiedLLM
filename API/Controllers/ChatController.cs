@@ -1,40 +1,36 @@
-﻿using Core.Interfaces;
-using Core.Models;
+﻿using Application.Interfaces;
+using Application.Models;
 using Microsoft.AspNetCore.Mvc;
-using UnifiedLLM.Core.Models;
 
 namespace API.Controllers;
 
 [ApiController]
 [Route("api/v1")]
-public class ModelController(IChatService chatService) : ControllerBase
+public sealed class ModelController(IChatApplicationService chatService) : ControllerBase
 {
     [HttpGet("models")]
-    public async Task<IActionResult> GetModels()
-    {
-        var models = await chatService.GetAvailableModelsAsync();
-        return Ok(models);
-    }
+    public async Task<IActionResult> GetModels() => Ok(await chatService.GetAvailableModelsAsync());
 }
 
 [ApiController]
 [Route("api/v1/[controller]")]
-public class ChatController(IChatService chatService) : ControllerBase
+public sealed class ChatController(IChatApplicationService chatService) : ControllerBase
 {
     [HttpPost("completions")]
     public async Task<IActionResult> ChatCompletions([FromBody] OpenWebUIChatRequest request)
     {
+        var response = await chatService.CreateChatCompletionAsync(request);
         return Ok(new OpenWebUIChatResponse
         {
             Id = "chatcmpl-abc123",
             Object = "chat.completion.chunk",
             Created = 1748455199,
             Model = "deepseek/deepseek-r1-0528:free",
-            Choices = new List<Core.Models.ChatChoice>
+            Choices = new List<ChatChoice>
             {
-                new Core.Models.ChatChoice
+                new ChatChoice
                 {
-                    Message = new Core.Models.ChatMessage
+                    Message = new ChatMessage
                     {
                         Role = "assistant",
                         Content = "hello"
@@ -44,11 +40,5 @@ public class ChatController(IChatService chatService) : ControllerBase
                 }
             }
         });
-    }
-
-    [HttpGet("models")]
-    public async Task<IActionResult> GetModels() {
-        var models = await chatService.GetAvailableModelsAsync();
-        return Ok(models);
     }
 }

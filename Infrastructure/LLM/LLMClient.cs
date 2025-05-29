@@ -1,4 +1,6 @@
-﻿using API.Configuration;
+﻿using Abstractions;
+using Abstractions.Interfaces;
+using API.Configuration;
 using Core.Models;
 using Infrastructure.Interfaces;
 using Microsoft.Extensions.Options;
@@ -11,13 +13,16 @@ namespace UnifiedLLM.Clients;
 public class LLMClient : ILLMClient
 {
     private readonly HttpClient _httpClient;
+    private readonly IHttpClientService _httpClientService;
     private readonly UnifiedLLMOptions _opts;
 
-    public LLMClient(HttpClient httpClient, IOptions<UnifiedLLMOptions> opts)
+    public LLMClient(HttpClient httpClient, IOptions<UnifiedLLMOptions> opts, IHttpClientService httpClientService)
     {
         _httpClient = httpClient;
+        _httpClientService = httpClientService;
         _opts = opts.Value;
         _httpClient.BaseAddress = new Uri(_opts.BaseUrl);
+        _httpClientService.BaseAddress = _opts.BaseUrl;
         _httpClient.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", _opts.ApiKey);
     }
@@ -94,26 +99,19 @@ public class LLMClient : ILLMClient
         throw new NotImplementedException();
     }
 
-    public async Task<ModelsResponse> GetAvailableModelsAsync(CancellationToken cancellationToken = default)
+    public async Task<Result<ModelsResponse>> GetAvailableModelsAsync(CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.GetAsync("v1/models", cancellationToken);
-
-        // Ensure the response indicates success
-        response.EnsureSuccessStatusCode();
-
-        // Read and deserialize the response content
-        var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
-        var modelsResponse = await JsonSerializer.DeserializeAsync<ModelsResponse>(
-            contentStream,
-            new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            },
-            cancellationToken
-        );
-
-        // Extract and return the list of model IDs
-        return modelsResponse ?? new ModelsResponse { Data = [] };
+        //var response = await _httpClient.GetAsync("v1/models", cancellationToken);
+        try
+        {
+            var response = await _httpClientService.TryGetContentStreamAsync("v1/models", cancellationToken);
+            return (await response.TryDeserializeJsonAsync<ModelsResponse>())
+                    .AsResultSuccess();
+        }
+        catch (Exception ex)
+        {
+            return Result<ModelsResponse>.Failure("Error on processing models.");
+        }
     }
 
     public Task<ModelDetails> GetModelDetailsAsync(string modelId, CancellationToken cancellationToken = default)

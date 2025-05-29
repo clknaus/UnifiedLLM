@@ -1,7 +1,10 @@
-﻿using API.Configuration;
+﻿using Abstractions.Interfaces;
+using API.Configuration;
+using Application.Interfaces;
 using Application.Services;
 using Core.Interfaces;
 using Infrastructure.Interfaces;
+using Infrastructure.Services;
 using Polly;
 using Polly.Extensions.Http;
 using System.Text.Json;
@@ -27,10 +30,11 @@ static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy() =>
 
 // Infrastructure
 builder.Services
-    .AddHttpClient<ILLMClient, LLMClient>()
+    .AddHttpClient<IHttpClientService, HttpClientService>()
     .SetHandlerLifetime(TimeSpan.FromMinutes(5))
     .AddPolicyHandler(GetRetryPolicy())
     .AddPolicyHandler(GetCircuitBreakerPolicy());
+builder.Services.AddScoped<ILLMClient, LLMClient>();
 
 //builder.Services.AddCors(options =>
 //{
@@ -42,7 +46,7 @@ builder.Services
 //});
 
 // Application
-builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<IChatApplicationService, ChatApplicationService>();
 
 // Controllers
 builder.Services.AddControllers()

@@ -1,6 +1,7 @@
-﻿using System.Text.Json.Serialization;
+﻿using Core.Models;
+using System.Text.Json.Serialization;
 
-namespace Core.Models;
+namespace Application.Models;
 public class OpenWebUIChatRequest
 {
     [JsonPropertyName("provider")]
@@ -152,4 +153,10 @@ public class BackgroundTasks
 
     [JsonPropertyName("tags_generation")]
     public bool TagsGeneration { get; set; }
+}
+
+public class ToolDefinition
+{
+    public string Type { get; set; } = "function"; // Currently, only "function" is supported
+    public FunctionDefinition Function { get; set; }
 }
