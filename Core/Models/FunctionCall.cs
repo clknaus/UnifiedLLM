@@ -1,6 +1,8 @@
-﻿namespace Core.Models;
-public class FunctionCall
+﻿using Core.Interfaces;
+
+namespace Core.Models;
+public class FunctionCall : IFunctionCall
 {
     public string Name { get; set; }
-    public string Arguments { get; set; } // JSON-formatted string
+    public string Arguments { get; set; }
 }

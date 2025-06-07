@@ -1,9 +1,10 @@
-﻿namespace Core.Models;
+﻿using Core.Interfaces;
 
-public class FunctionParameter
+namespace Core.Models;
+public class FunctionParameter : IFunctionParameter
 {
-    public string Type { get; set; } // e.g., "string", "number", "object"
+    public string Type { get; set; }
     public string Description { get; set; }
-    public IDictionary<string, FunctionParameter> Properties { get; set; } // For nested objects
-    public IList<string> Required { get; set; } // List of required parameter names
+    public IDictionary<string, FunctionParameter> Properties { get; set; }
+    public IList<string> Required { get; set; }
 }

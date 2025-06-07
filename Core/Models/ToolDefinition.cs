@@ -1,6 +1,7 @@
-﻿namespace Core.Models;
-public class ToolDefinition
+﻿using Core.Interfaces;
+
+namespace Core.Models;
+public class ToolDefinition : IToolDefinition
 {
-    public string Type { get; set; } = "function"; // Currently, only "function" is supported
     public FunctionDefinition Function { get; set; }
 }

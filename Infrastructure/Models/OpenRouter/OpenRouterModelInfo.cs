@@ -1,7 +1,7 @@
 ﻿using Core.Interfaces;
 
-namespace Application.Models;
-public class OpenWebUIModelInfo : IModelInfo
+namespace Infrastructure.Models.OpenRouter;
+public class OpenRouterModelInfo : IModelInfo
 {
     public string Id { get; set; }
     public string Object { get; set; } = "model";

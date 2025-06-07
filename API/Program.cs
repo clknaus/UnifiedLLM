@@ -1,20 +1,19 @@
 ﻿using Abstractions.Interfaces;
-using API.Configuration;
 using Application.Interfaces;
 using Application.Services;
-using Core.Interfaces;
-using Infrastructure.Interfaces;
+using Infrastructure.Interfaces.OpenRouter;
+using Infrastructure.Models.OpenRouter;
 using Infrastructure.Services;
+using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Extensions.Http;
 using System.Text.Json;
-using UnifiedLLM.Clients;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Configuration
-builder.Services.Configure<UnifiedLLMOptions>(
-    builder.Configuration.GetSection(UnifiedLLMOptions.SectionName)
+builder.Services.Configure<OpenRouterConfiguration>(
+    builder.Configuration.GetSection(OpenRouterConfiguration.SectionName)
 );
 
 // Policies
@@ -29,12 +28,36 @@ static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy() =>
         .CircuitBreakerAsync(5, TimeSpan.FromSeconds(30));
 
 // Infrastructure
+builder.Services.Configure<OpenRouterConfiguration>(
+    builder.Configuration.GetSection(OpenRouterConfiguration.SectionName));
+
+// Add validation for OpenRouterConfiguration
+builder.Services.AddOptions<OpenRouterConfiguration>()
+    .Bind(builder.Configuration.GetSection(OpenRouterConfiguration.SectionName))
+    .Validate(options =>
+    {
+        if (string.IsNullOrEmpty(options.ApiKey))
+            return false;
+
+        if (string.IsNullOrEmpty(options.BaseUrl))
+            return false;
+
+        return true;
+    }, "OpenRouter configuration is invalid.");
+
+// Register HttpClient
 builder.Services
-    .AddHttpClient<IHttpClientService, HttpClientService>()
+    .AddHttpClient<IOpenRouterClientService, OpenRouterClientService>((serviceProvider, httpClient) =>
+    {
+        var unifiedLLMOptions = serviceProvider.GetRequiredService<IOptions<OpenRouterConfiguration>>().Value;
+        httpClient.BaseAddress = new Uri(unifiedLLMOptions.BaseUrl);
+        httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {unifiedLLMOptions.ApiKey}");
+        //httpClient.DefaultRequestHeaders.Add("HTTP-Referer", unifiedLLMOptions?.AppReferer);
+        //httpClient.DefaultRequestHeaders.Add("X-Title", unifiedLLMOptions?.AppTitle);
+    })
     .SetHandlerLifetime(TimeSpan.FromMinutes(5))
     .AddPolicyHandler(GetRetryPolicy())
-    .AddPolicyHandler(GetCircuitBreakerPolicy());
-builder.Services.AddScoped<ILLMClient, LLMClient>();
+    .AddPolicyHandler(GetCircuitBreakerPolicy()); // Assuming GetCircuitBreakerPolicy() is defined elsewhere
 
 //builder.Services.AddCors(options =>
 //{
@@ -46,7 +69,7 @@ builder.Services.AddScoped<ILLMClient, LLMClient>();
 //});
 
 // Application
-builder.Services.AddScoped<IChatApplicationService, ChatApplicationService>();
+builder.Services.AddScoped<IChatService, ChatService>();
 
 // Controllers
 builder.Services.AddControllers()

@@ -1,17 +1,17 @@
 ﻿using Core.Interfaces;
 using Core.Models;
 
-namespace Application.Models;
-public class OpenWebUIChatRequest : IChatRequest
+namespace Infrastructure.Models.OpenRouter;
+public class OpenRouterChatRequest : IChatRequest
 {
     //public string? Provider { get; set; }
     public string Model { get; set; }
     public IEnumerable<ChatMessage> Messages { get; set; }
-    //public double? TemperatureX { get; set; } = 0.7;
+    //public double? Temperature { get; set; } = 0.7;
     //public double? TopP { get; set; } = 1.0;
     //public int? N { get; set; } = 1;
     //public int? MaxTokens { get; set; } = 256;
-    public bool Stream { get; set; } = false;
+    public bool Stream { get; set; }
     //public IEnumerable<string>? Stop { get; set; }
     //public double? PresencePenalty { get; set; } = 0.0;
     //public double? FrequencyPenalty { get; set; } = 0.0;

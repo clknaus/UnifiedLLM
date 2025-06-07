@@ -1,6 +1,4 @@
-﻿using Core.Interfaces;
-using Core.Models;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Text.Json;
 
 namespace Abstractions;
@@ -31,9 +29,9 @@ public static class Extension
         return obj;
     }
 
-    public static Result<T> AsResultSuccess<T>(this T? obj) where T : class => Result<T>.Success(obj);
-    public static Result<U> AsResultFailed<U>(this IResult? result) where U : class
-    {
-        return Result<U>.Failure(result?.Error ?? "Unknown error");
-    }
+    //public static Result<T> AsResultSuccess<T>(this T? obj) where T : class => Result<T>.Success(obj);
+    //public static Result<U> AsResultFailed<U>(this IResult? result) where U : class
+    //{
+    //    return Result<U>.Failure(result?.Error ?? "Unknown error");
+    //}
 }

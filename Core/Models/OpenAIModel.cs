@@ -1,7 +1,7 @@
 ﻿using Core.Interfaces;
 
 namespace Core.Models;
-public class ModelInfo : IModelInfo
+public class OpenAIModel : IOpenAIModel
 {
     public string Id { get; set; }
     public string Object { get; set; }

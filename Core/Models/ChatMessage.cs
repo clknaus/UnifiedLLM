@@ -1,6 +1,8 @@
-﻿namespace UnifiedLLM.Core.Models;
-public class ChatMessage
+﻿using Core.Interfaces;
+
+namespace Core.Models;
+public class ChatMessage : IChatMessage
 {
-    public string Role { get; set; } // "system", "user", or "assistant"
+    public string Role { get; set; }
     public string Content { get; set; }
 }

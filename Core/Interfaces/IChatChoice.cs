@@ -1,10 +1,9 @@
-﻿using Core.Interfaces;
+﻿using Core.Models;
 
-namespace Core.Models;
-public class ChatChoice : IChatChoice
+namespace Core.Interfaces;
+public interface IChatChoice
 {
     public int Index { get; set; }
     public ChatMessage Message { get; set; }
     public string FinishReason { get; set; }
-
 }

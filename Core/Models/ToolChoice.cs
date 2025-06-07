@@ -1,6 +1,8 @@
-﻿namespace Core.Models;
-public class ToolChoice
+﻿using Core.Interfaces;
+
+namespace Core.Models;
+public class ToolChoice : IToolChoice
 {
-    public string Type { get; set; } = "function"; // Currently, only "function" is supported
+    public string Type { get; set; }
     public FunctionCall Function { get; set; }
 }

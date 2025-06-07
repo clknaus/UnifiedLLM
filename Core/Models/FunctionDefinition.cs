@@ -1,5 +1,7 @@
-﻿namespace Core.Models;
-public class FunctionDefinition
+﻿using Core.Interfaces;
+
+namespace Core.Models;
+public class FunctionDefinition : IFunctionDefinition
 {
     public string Name { get; set; }
     public string Description { get; set; }

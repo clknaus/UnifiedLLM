@@ -2,7 +2,7 @@
 using Core.Models;
 
 namespace Application.Models;
-public class OpenWebUIChatResponse : IChatResponse
+public class OpenRouterChatResponse : IChatResponse
 {
     public string Id { get; set; }
     public string Object { get; set; }
@@ -16,22 +16,22 @@ public class OpenWebUIChatResponse : IChatResponse
     public string SystemFingerprint { get; set; }
 }
 
-public class Usage
-{
-    public int PromptTokens { get; set; }
-    public int CompletionTokens { get; set; }
-    public int TotalTokens { get; set; }
-}
+//public class Usage
+//{
+//    public int PromptTokens { get; set; }
+//    public int CompletionTokens { get; set; }
+//    public int TotalTokens { get; set; }
+//}
 
-public class ToolCall
-{
-    public string Id { get; set; }
-    public string Type { get; set; }
-    public ToolFunction Function { get; set; }
-}
+//public class ToolCall
+//{
+//    public string Id { get; set; }
+//    public string Type { get; set; }
+//    public ToolFunction Function { get; set; }
+//}
 
-public class ToolFunction
-{
-    public string Name { get; set; }
-    public string Arguments { get; set; } // usually raw JSON string
-}
+//public class ToolFunction
+//{
+//    public string Name { get; set; }
+//    public string Arguments { get; set; } // usually raw JSON string
+//}

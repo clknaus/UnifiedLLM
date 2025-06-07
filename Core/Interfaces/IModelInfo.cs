@@ -1,7 +1,6 @@
-﻿using Core.Interfaces;
+﻿namespace Core.Interfaces;
 
-namespace Core.Models;
-public class ModelInfo : IModelInfo
+public interface IModelInfo
 {
     public string Id { get; set; }
     public string Object { get; set; }
