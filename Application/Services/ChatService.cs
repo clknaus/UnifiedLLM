@@ -44,6 +44,8 @@ public class ChatService(IOpenRouterClientService openRouterClientService, IAsyn
     public async Task<IModelsResponse?> GetAvailableModelsAsync(CancellationToken cancellationToken = default)
     {
         var res = await openRouterClientService.GetAvailableModelsAsync(cancellationToken);
+        // sort
+
         if (res == null) 
             return null;
 

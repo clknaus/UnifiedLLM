@@ -1,5 +1,4 @@
-﻿using Abstractions.Interfaces;
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using Application.Services;
 using Core.Interfaces;
 using Infrastructure.Interfaces.OpenRouter;
@@ -16,9 +15,28 @@ using System.Text.Json;
 var builder = WebApplication.CreateBuilder(args);
 
 // Configuration
-builder.Services.Configure<OpenRouterConfiguration>(
-    builder.Configuration.GetSection(OpenRouterConfiguration.SectionName)
-);
+// appsettings.json
+var config = new ConfigurationBuilder()
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("secrets.json", optional: false, reloadOnChange: true)
+    .Build();
+
+var appSettings = config.GetSection("AppSettings").Get<AppSettings>();
+if (appSettings == null)
+{
+    throw new ArgumentNullException();
+}
+
+System.Console.WriteLine(appSettings.ApplicationName);
+System.Console.WriteLine(appSettings.Version);
+
+// secrets.json
+var secrets = config.GetSection("Secrets").Get<Secrets>();
+if (secrets == null)
+{
+    throw new ArgumentNullException();
+}
 
 // Policies
 static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy() =>
@@ -35,27 +53,36 @@ static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy() =>
 builder.Services.Configure<OpenRouterConfiguration>(
     builder.Configuration.GetSection(OpenRouterConfiguration.SectionName));
 
+//builder.Services.AddSingleton(sp =>
+//{
+//    var config = sp.GetRequiredService<IConfiguration>();
+//    var openRouterConfig = config.GetSection(OpenRouterConfiguration.SectionName).Get<OpenRouterConfiguration>();
+//    openRouterConfig.ApiKey = secrets.OpenRouterConfiguration.ApiKey;
+
+//    return openRouterConfig;
+//});
+
 // Add validation for OpenRouterConfiguration
-builder.Services.AddOptions<OpenRouterConfiguration>()
-    .Bind(builder.Configuration.GetSection(OpenRouterConfiguration.SectionName))
-    .Validate(options =>
-    {
-        if (string.IsNullOrEmpty(options.ApiKey))
-            return false;
+//builder.Services.AddOptions<OpenRouterConfiguration>()
+//    .Bind(builder.Configuration.GetSection(OpenRouterConfiguration.SectionName))
+//    .Validate(options =>
+//    {
+//        if (string.IsNullOrEmpty(options.ApiKey))
+//            return false;
 
-        if (string.IsNullOrEmpty(options.BaseUrl))
-            return false;
+//        if (string.IsNullOrEmpty(options.BaseUrl))
+//            return false;
 
-        return true;
-    }, "OpenRouter configuration is invalid.");
+//        return true;
+//    }, "OpenRouter configuration is invalid.");
 
 // Register HttpClient
 builder.Services
     .AddHttpClient<IOpenRouterClientService, OpenRouterClientService>((serviceProvider, httpClient) =>
     {
-        var unifiedLLMOptions = serviceProvider.GetRequiredService<IOptions<OpenRouterConfiguration>>().Value;
-        httpClient.BaseAddress = new Uri(unifiedLLMOptions.BaseUrl);
-        httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {unifiedLLMOptions.ApiKey}");
+        var openRouterConfigurationOption = serviceProvider.GetRequiredService<IOptions<OpenRouterConfiguration>>().Value;
+        httpClient.BaseAddress = new Uri(openRouterConfigurationOption.BaseUrl);
+        httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {openRouterConfigurationOption.ApiKey}");
         //httpClient.DefaultRequestHeaders.Add("HTTP-Referer", unifiedLLMOptions?.AppReferer);
         //httpClient.DefaultRequestHeaders.Add("X-Title", unifiedLLMOptions?.AppTitle);
     })
@@ -99,4 +126,6 @@ var app = builder.Build();
 app.UseRouting();
 //app.UseAuthentication();
 app.MapControllers();
+
+System.Console.WriteLine("Application ready ...");
 app.Run();

@@ -38,6 +38,7 @@ public class OpenRouterClientService : IOpenRouterClientService
         }
         catch (Exception)
         {
+            _httpClient?.Dispose();
             return null;
         }
     }
@@ -96,9 +97,6 @@ public class OpenRouterClientService : IOpenRouterClientService
         }
     }
 
-
-
-
     public async Task<IModelsResponse?> GetAvailableModelsAsync(CancellationToken cancellationToken = default)
     {
         try
@@ -112,6 +110,7 @@ public class OpenRouterClientService : IOpenRouterClientService
         }
         catch (Exception)
         {
+            _httpClient?.Dispose();
             return null;
         }
     }
