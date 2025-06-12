@@ -1,9 +1,13 @@
 ﻿using Abstractions.Interfaces;
 using Application.Interfaces;
 using Application.Services;
+using Core.Interfaces;
 using Infrastructure.Interfaces.OpenRouter;
 using Infrastructure.Models.OpenRouter;
+using Infrastructure.Persistence;
+using Infrastructure.Persistence.Repositories;
 using Infrastructure.Services;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Extensions.Http;
@@ -58,6 +62,14 @@ builder.Services
     .SetHandlerLifetime(TimeSpan.FromMinutes(5))
     .AddPolicyHandler(GetRetryPolicy())
     .AddPolicyHandler(GetCircuitBreakerPolicy()); // Assuming GetCircuitBreakerPolicy() is defined elsewhere
+
+//builder.Services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("MyDatabase"));
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
+
+builder.Services.AddScoped(typeof(IAsyncRepository<>), typeof(EfRepository<>));
+//using var context = new AppDbContext();
+//context.Database.EnsureCreated();
 
 //builder.Services.AddCors(options =>
 //{

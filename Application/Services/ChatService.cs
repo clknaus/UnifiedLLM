@@ -1,14 +1,23 @@
 ﻿using Application.Interfaces;
 using Application.Models;
+using Core.Entities;
 using Core.Interfaces;
 using Infrastructure.Interfaces.OpenRouter;
 
 namespace Application.Services;
-public class ChatService(IOpenRouterClientService openRouterClientService) : IChatService
+public class ChatService(IOpenRouterClientService openRouterClientService, IAsyncRepository<AnonymizedChatRequest> anonymizedChatRequestRepository) : IChatService
 {
     public async Task<IChatResponse?> CreateChatCompletionAsync(OpenWebUIChatRequest request, CancellationToken cancellationToken = default)
     {
         request.Stream = false; // TODO enable streaming
+        //var entity = new AnonymizedChatRequest()
+        //{
+
+        //};
+        var entity = new AnonymizedChatRequest();
+        await anonymizedChatRequestRepository.AddAsync(entity);
+        entity = await anonymizedChatRequestRepository.GetByIdAsync(entity.Id);
+
         var res = await openRouterClientService.CreateChatCompletionAsync(request, cancellationToken);
         if (res == null)
             return null;
