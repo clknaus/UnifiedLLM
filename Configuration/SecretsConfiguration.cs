@@ -1,6 +1,6 @@
 using Infrastructure.Models.OpenRouter;
 
-public class Secrets
+public class SecretsConfiguration
 {
     public OpenRouterConfiguration OpenRouterConfiguration { get; set; }
 }

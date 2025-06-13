@@ -18,11 +18,11 @@ var builder = WebApplication.CreateBuilder(args);
 // appsettings.json
 var config = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
-    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("secrets.json", optional: false, reloadOnChange: true)
+     .AddJsonFile(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).FullName, "Configuration", "appsettings.json"), optional: false, reloadOnChange: true)
+     .AddJsonFile(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).FullName, "Configuration", "secrets.json"), optional: false, reloadOnChange: true)
     .Build();
 
-var appSettings = config.GetSection("AppSettings").Get<AppSettings>();
+var appSettings = config.GetSection("AppSettings").Get<AppSettingsConfiguration>();
 if (appSettings == null)
 {
     throw new ArgumentNullException();
@@ -32,7 +32,7 @@ System.Console.WriteLine(appSettings.ApplicationName);
 System.Console.WriteLine(appSettings.Version);
 
 // secrets.json
-var secrets = config.GetSection("Secrets").Get<Secrets>();
+var secrets = config.GetSection("Secrets").Get<SecretsConfiguration>();
 if (secrets == null)
 {
     throw new ArgumentNullException();
@@ -53,60 +53,21 @@ static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy() =>
 builder.Services.Configure<OpenRouterConfiguration>(
     builder.Configuration.GetSection(OpenRouterConfiguration.SectionName));
 
-//builder.Services.AddSingleton(sp =>
-//{
-//    var config = sp.GetRequiredService<IConfiguration>();
-//    var openRouterConfig = config.GetSection(OpenRouterConfiguration.SectionName).Get<OpenRouterConfiguration>();
-//    openRouterConfig.ApiKey = secrets.OpenRouterConfiguration.ApiKey;
-
-//    return openRouterConfig;
-//});
-
-// Add validation for OpenRouterConfiguration
-//builder.Services.AddOptions<OpenRouterConfiguration>()
-//    .Bind(builder.Configuration.GetSection(OpenRouterConfiguration.SectionName))
-//    .Validate(options =>
-//    {
-//        if (string.IsNullOrEmpty(options.ApiKey))
-//            return false;
-
-//        if (string.IsNullOrEmpty(options.BaseUrl))
-//            return false;
-
-//        return true;
-//    }, "OpenRouter configuration is invalid.");
-
-// Register HttpClient
 builder.Services
     .AddHttpClient<IOpenRouterClientService, OpenRouterClientService>((serviceProvider, httpClient) =>
     {
         var openRouterConfigurationOption = serviceProvider.GetRequiredService<IOptions<OpenRouterConfiguration>>().Value;
         httpClient.BaseAddress = new Uri(openRouterConfigurationOption.BaseUrl);
         httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {openRouterConfigurationOption.ApiKey}");
-        //httpClient.DefaultRequestHeaders.Add("HTTP-Referer", unifiedLLMOptions?.AppReferer);
-        //httpClient.DefaultRequestHeaders.Add("X-Title", unifiedLLMOptions?.AppTitle);
     })
     .SetHandlerLifetime(TimeSpan.FromMinutes(5))
     .AddPolicyHandler(GetRetryPolicy())
     .AddPolicyHandler(GetCircuitBreakerPolicy()); // Assuming GetCircuitBreakerPolicy() is defined elsewhere
 
-//builder.Services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("MyDatabase"));
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
 
 builder.Services.AddScoped(typeof(IAsyncRepository<>), typeof(EfRepository<>));
-//using var context = new AppDbContext();
-//context.Database.EnsureCreated();
-
-//builder.Services.AddCors(options =>
-//{
-//    options.AddPolicy("AllowSpecificOrigin",
-//        builder => builder.WithOrigins("http://localhost:3000")
-//                          .AllowAnyMethod()
-//                          .AllowAnyHeader()
-//                          .AllowCredentials());
-//});
-
 // Application
 builder.Services.AddScoped<IChatService, ChatService>();
 

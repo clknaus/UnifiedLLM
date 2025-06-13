@@ -1,4 +1,4 @@
-public class AppSettings
+public class AppSettingsConfiguration
 {
     public string ApplicationName { get; set; }
     public string Version { get; set; }
