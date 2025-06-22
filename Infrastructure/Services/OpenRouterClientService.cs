@@ -1,5 +1,7 @@
-﻿using Application.Models;
+﻿using Abstractions;
+using Application.Models;
 using Core.Interfaces;
+using Core.Models;
 using Infrastructure.Interfaces.OpenRouter;
 using Infrastructure.Models.OpenRouter;
 using Microsoft.Extensions.Options;
@@ -20,7 +22,7 @@ public class OpenRouterClientService : IOpenRouterClientService
         _httpClient.BaseAddress = new Uri(_opts.BaseUrl);
     }
 
-    public async Task<IChatResponse?> CreateChatCompletionAsync(IChatRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result<IChatResponse>> CreateChatCompletionAsync(IChatRequest request, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -29,17 +31,20 @@ public class OpenRouterClientService : IOpenRouterClientService
 
             using var response = await _httpClient.PostAsync("v1/chat/completions", content, cancellationToken);
             response.EnsureSuccessStatusCode();
+            _httpClient?.Dispose();
 
-            return await JsonSerializer.DeserializeAsync<OpenRouterChatResponse>(
+            var res = await JsonSerializer.DeserializeAsync<OpenRouterChatResponse>(
                        await response.Content.ReadAsStreamAsync(cancellationToken),
                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true },
                        cancellationToken
-                   ) ?? throw new InvalidOperationException("Invalid API response");
+                   );
+
+            return res.AsResultSuccess<IChatResponse>();
         }
         catch (Exception)
         {
             _httpClient?.Dispose();
-            return null;
+            return Result<IChatResponse>.Failure();
         }
     }
 
@@ -97,21 +102,24 @@ public class OpenRouterClientService : IOpenRouterClientService
         }
     }
 
-    public async Task<IModelsResponse?> GetAvailableModelsAsync(CancellationToken cancellationToken = default)
+    public async Task<Result<IModelsResponse>> GetAvailableModelsAsync(CancellationToken cancellationToken = default)
     {
         try
         {
             var response = await _httpClient.GetAsync("v1/models", cancellationToken);
-            return await JsonSerializer.DeserializeAsync<OpenRouterModelsResponse>(
+            var res = await JsonSerializer.DeserializeAsync<OpenRouterModelsResponse>(
                 await response.Content.ReadAsStreamAsync(),
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true },
                 cancellationToken
-            ) ?? throw new InvalidOperationException("Invalid API response");
+            );
+            _httpClient.Dispose();
+
+            return res.AsResultSuccess<IModelsResponse>();
         }
         catch (Exception)
         {
             _httpClient?.Dispose();
-            return null;
+            return Result<IModelsResponse>.Failure();
         }
     }
 

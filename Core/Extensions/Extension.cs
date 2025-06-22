@@ -3,7 +3,7 @@ using Core.Models;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 
-namespace Abstractions;
+namespace Core.Extensions;
 public static class Extension
 {
     public static async Task<T> TryDeserializeJsonAsync<T>(this Stream stream, CancellationToken cancellationToken = default)

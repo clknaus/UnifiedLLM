@@ -24,9 +24,9 @@ public class OpenWebUIChatRequest : IChatRequest
     //public Features? Features { get; set; }
     //public IDictionary<string, string>? Variables { get; set; }
     //public ModelItem? ModelItem { get; set; }
-    //public string? SessionId { get; set; }
-    //public string? ChatId { get; set; }
-    //public string? Id { get; set; }
+    public string? SessionId { get; set; }
+    public string? ChatId { get; set; }
+    public string? Id { get; set; }
     //public BackgroundTasks? BackgroundTasks { get; set; }
 }
 

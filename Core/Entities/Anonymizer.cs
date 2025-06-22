@@ -1,6 +1,8 @@
-﻿namespace Core.Entities;
+﻿using Core.Interfaces;
 
-public class AnonymizedChatRequest : BaseEntity
+namespace Core.Entities;
+
+public class Anonymizer : BaseEntity
 {
     //public required string RequestId;
     //public required string OriginalName;

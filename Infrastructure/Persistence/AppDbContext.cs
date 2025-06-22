@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Infrastructure.Persistence;
 public class AppDbContext : DbContext
 {
-    public DbSet<AnonymizedChatRequest> AnonymizedChatRequest { get; set; } = null!;
+    public DbSet<Anonymizer> AnonymizedChatRequest { get; set; } = null!;
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 

@@ -23,9 +23,9 @@ public interface IChatRequest
     //Features? Features { get; set; }
     //IDictionary<string, string>? Variables { get; set; }
     //ModelItem? ModelItem { get; set; }
-    //string? SessionId { get; set; }
-    //string? ChatId { get; set; }
-    //string? Id { get; set; }
+    string? SessionId { get; set; }
+    string? ChatId { get; set; }
+    string? Id { get; set; }
     //BackgroundTasks? BackgroundTasks { get; set; }
 }
 

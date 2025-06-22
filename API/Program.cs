@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Extensions.Http;
+using System.Diagnostics;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -53,10 +54,14 @@ static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy() =>
 builder.Services.Configure<OpenRouterConfiguration>(
     builder.Configuration.GetSection(OpenRouterConfiguration.SectionName));
 
+
+
 builder.Services
     .AddHttpClient<IOpenRouterClientService, OpenRouterClientService>((serviceProvider, httpClient) =>
     {
-        var openRouterConfigurationOption = serviceProvider.GetRequiredService<IOptions<OpenRouterConfiguration>>().Value;
+        var openRouterConfigurationOption = serviceProvider?.GetRequiredService<IOptions<OpenRouterConfiguration>>()?.Value ?? throw new ArgumentNullException();
+        openRouterConfigurationOption.ApiKey = secrets.OpenRouterConfiguration.ApiKey;
+
         httpClient.BaseAddress = new Uri(openRouterConfigurationOption.BaseUrl);
         httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {openRouterConfigurationOption.ApiKey}");
     })

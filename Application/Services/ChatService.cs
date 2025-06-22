@@ -2,27 +2,24 @@
 using Application.Models;
 using Core.Entities;
 using Core.Interfaces;
+using Core.Models;
 using Infrastructure.Interfaces.OpenRouter;
 
 namespace Application.Services;
-public class ChatService(IOpenRouterClientService openRouterClientService, IAsyncRepository<AnonymizedChatRequest> anonymizedChatRequestRepository) : IChatService
+public class ChatService(IOpenRouterClientService openRouterClientService, IAsyncRepository<Anonymizer> anonymizedChatRequestRepository) : IChatService
 {
-    public async Task<IChatResponse?> CreateChatCompletionAsync(OpenWebUIChatRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result<IChatResponse>> CreateChatCompletionAsync(OpenWebUIChatRequest request, CancellationToken cancellationToken = default)
     {
         request.Stream = false; // TODO enable streaming
         //var entity = new AnonymizedChatRequest()
         //{
 
         //};
-        var entity = new AnonymizedChatRequest();
-        await anonymizedChatRequestRepository.AddAsync(entity);
-        entity = await anonymizedChatRequestRepository.GetByIdAsync(entity.Id);
+        //var entity = new Anonymizer(request);
+        //await anonymizedChatRequestRepository.AddAsync(entity);
+        //entity = await anonymizedChatRequestRepository.GetByIdAsync(entity.Id);
 
-        var res = await openRouterClientService.CreateChatCompletionAsync(request, cancellationToken);
-        if (res == null)
-            return null;
-
-        return res;
+        return await openRouterClientService.CreateChatCompletionAsync(request, cancellationToken);
 
         //return new OpenWebUIChatResponse
         //{
@@ -41,15 +38,9 @@ public class ChatService(IOpenRouterClientService openRouterClientService, IAsyn
         //};
     }
 
-    public async Task<IModelsResponse?> GetAvailableModelsAsync(CancellationToken cancellationToken = default)
+    public async Task<Result<IModelsResponse>> GetAvailableModelsAsync(CancellationToken cancellationToken = default)
     {
-        var res = await openRouterClientService.GetAvailableModelsAsync(cancellationToken);
-        // sort
-
-        if (res == null) 
-            return null;
-
-        return res;
+        return await openRouterClientService.GetAvailableModelsAsync(cancellationToken);
 
         //return new OpenWebUIModelsResponse
         //{
