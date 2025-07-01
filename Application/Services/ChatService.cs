@@ -1,23 +1,32 @@
 ﻿using Application.Interfaces;
-using Application.Models;
+using Core;
 using Core.Entities;
 using Core.Interfaces;
 using Core.Models;
 using Infrastructure.Interfaces.OpenRouter;
 
 namespace Application.Services;
-public class ChatService(IOpenRouterClientService openRouterClientService, IAsyncRepository<Anonymizer> anonymizedChatRequestRepository) : IChatService
+public class ChatService(IOpenRouterClientService openRouterClientService, IAsyncRepository<Chat> chatAsyncRepository, IUnitOfWork unitOfWork) : IChatService
 {
-    public async Task<Result<IChatResponse>> CreateChatCompletionAsync(OpenWebUIChatRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result<IChatResponse>> CreateChatCompletionAsync(IChatRequest request, CancellationToken cancellationToken = default)
     {
         request.Stream = false; // TODO enable streaming
-        //var entity = new AnonymizedChatRequest()
-        //{
 
-        //};
-        //var entity = new Anonymizer(request);
-        //await anonymizedChatRequestRepository.AddAsync(entity);
-        //entity = await anonymizedChatRequestRepository.GetByIdAsync(entity.Id);
+        // create or get chat entity along with a guid
+        var chat = new Chat();
+        chat.ValidateThenRaiseEvent();
+        Chat entity = await chatAsyncRepository.AddAsync(chat);
+        await unitOfWork.CommitAsync();
+
+        // keep track of the saved entity by guid
+        // get or hash text to keep track of chat entity
+        // may use cosinus properties to check on text similarity for tracking
+
+        // use factory to create Anonymizer (inside Chat entity?)
+        // use Search along with ISearchService call
+        // use Functor as object to command a call (research cosine similarity behavior for getting the right function)
+        // call Functor along with IOpenRouteClientService to determine function so that semantics are sure.
+        // parameterize preferred model for every call in IOpenRouteClientService
 
         return await openRouterClientService.CreateChatCompletionAsync(request, cancellationToken);
 
@@ -41,18 +50,5 @@ public class ChatService(IOpenRouterClientService openRouterClientService, IAsyn
     public async Task<Result<IModelsResponse>> GetAvailableModelsAsync(CancellationToken cancellationToken = default)
     {
         return await openRouterClientService.GetAvailableModelsAsync(cancellationToken);
-
-        //return new OpenWebUIModelsResponse
-        //{
-        //    Data = [.. res?.Data?
-        //    .Where(model => model != null)
-        //    .Select(model => new OpenWebUIModelInfo
-        //    {
-        //        Id = model.Id,
-        //        Object = model.Object,
-        //        Created = model.Created,
-        //        OwnedBy = model.OwnedBy,
-        //    }) ?? []]
-        //};
     }
 }

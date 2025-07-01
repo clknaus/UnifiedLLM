@@ -36,4 +36,5 @@ public static class Extension
     {
         return Result<U>.Failure(result?.Error ?? "Error");
     }
+
 }

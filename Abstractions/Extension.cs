@@ -36,4 +36,35 @@ public static class Extension
     {
         return Result<U>.Failure(result?.Error ?? "Error");
     }
+
+    public static async Task<Result<T>> TryOrReturn<T>(
+        this Func<Task<T>> operation,
+        ErrorType error
+    )
+    {
+        try
+        {
+            var result = await operation();
+            return Result<T>.Success(result);
+        }
+        catch
+        {
+            return Result<T>.Failure(error);
+        }
+    }
+
+    public static Result<T> TryOrReturn<T>(
+        this Func<T> operation,
+        ErrorType error
+    )
+    {
+        try
+        {
+            return Result<T>.Success(operation());
+        }
+        catch
+        {
+            return Result<T>.Failure(error);
+        }
+    }
 }

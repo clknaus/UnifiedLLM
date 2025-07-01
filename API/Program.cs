@@ -1,6 +1,10 @@
-﻿using Application.Interfaces;
+﻿using Application.Handler;
+using Application.Interfaces;
 using Application.Services;
+using Core;
+using Core.Entities;
 using Core.Interfaces;
+using Infrastructure;
 using Infrastructure.Interfaces.OpenRouter;
 using Infrastructure.Models.OpenRouter;
 using Infrastructure.Persistence;
@@ -72,9 +76,20 @@ builder.Services
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
 
-builder.Services.AddScoped(typeof(IAsyncRepository<>), typeof(EfRepository<>));
+// Dependency Injections
+
 // Application
 builder.Services.AddScoped<IChatService, ChatService>();
+// Application Handler
+builder.Services.AddScoped<IQueryHandler<IModelsResponse>, GetAvailableModelsQueryHandler>();
+builder.Services.AddScoped<ICommandHandler<IChatRequest, IChatResponse>, CreateChatCompletionCommandHandler>();
+builder.Services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
+// Events
+builder.Services.AddScoped<IDomainEventHandler<ChatCompletedEvent>, ChatCompletedEventHandler>();
+// Infrastructure
+builder.Services.AddScoped(typeof(IAsyncRepository<>), typeof(EfRepository<>));
+builder.Services.AddScoped(typeof(IUnitOfWork), typeof(EfUnitOfWork));
+
 
 // Controllers
 builder.Services.AddControllers()

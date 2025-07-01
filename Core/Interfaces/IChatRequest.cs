@@ -4,6 +4,7 @@ namespace Core.Interfaces;
 public interface IChatRequest
 {
     //string? Provider { get; set; }
+    string? Id { get; set; }
     string Model { get; set; }
     IEnumerable<ChatMessage> Messages { get; set; }
     //double? Temperature { get; set; }
@@ -23,9 +24,8 @@ public interface IChatRequest
     //Features? Features { get; set; }
     //IDictionary<string, string>? Variables { get; set; }
     //ModelItem? ModelItem { get; set; }
-    string? SessionId { get; set; }
-    string? ChatId { get; set; }
-    string? Id { get; set; }
+    //string? SessionId { get; set; }
+    //string? ChatId { get; set; }
     //BackgroundTasks? BackgroundTasks { get; set; }
 }
 

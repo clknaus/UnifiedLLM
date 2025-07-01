@@ -2,7 +2,7 @@
 
 namespace Core.Entities;
 
-public class Anonymizer : BaseEntity
+public class Anonymizer : Entity<Guid>
 {
     //public required string RequestId;
     //public required string OriginalName;

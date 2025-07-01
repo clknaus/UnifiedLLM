@@ -1,9 +1,7 @@
 ﻿namespace Core.Entities;
 
-public abstract class BaseEntity
+public abstract class BaseEntity : Entity<Guid>
 {
-    public Guid Id { get; set; } = Guid.NewGuid();
-
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
     public DateTime? ModifiedDate { get; set; }
