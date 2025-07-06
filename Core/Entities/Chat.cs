@@ -3,6 +3,7 @@
 namespace Core.Entities;
 public class Chat : AggregateRoot<Guid>
 {
+    internal Tracker Tracker { get; set; }
     public ChatRequest ChatRequest { get; init; }
     public ChatResponse ChatResponse { get; init; }
 
