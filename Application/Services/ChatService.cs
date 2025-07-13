@@ -1,8 +1,9 @@
 ﻿using Application.Interfaces;
 using Core;
-using Core.Entities;
-using Core.Interfaces;
-using Core.Models;
+using Core.Domain.Entities;
+using Core.Domain.Interfaces;
+using Core.General.Models;
+using Core.Supportive.Interfaces;
 using Infrastructure.Interfaces.OpenRouter;
 
 namespace Application.Services;

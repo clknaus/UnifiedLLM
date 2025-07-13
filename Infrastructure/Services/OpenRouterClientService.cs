@@ -1,7 +1,7 @@
 ﻿using Abstractions;
 using Application.Models;
-using Core.Interfaces;
-using Core.Models;
+using Core.Domain.Interfaces;
+using Core.General.Models;
 using Infrastructure.Interfaces.OpenRouter;
 using Infrastructure.Models.OpenRouter;
 using Microsoft.Extensions.Options;

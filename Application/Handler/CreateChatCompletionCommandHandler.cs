@@ -1,8 +1,8 @@
 ﻿using Abstractions;
 using Application.Interfaces;
+using Core.Domain.Interfaces;
 using Core.Extensions;
-using Core.Interfaces;
-using Core.Models;
+using Core.General.Models;
 
 namespace Application.Handler;
 public record CreateChatCompletionCommand(IChatRequest Request);

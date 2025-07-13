@@ -1,4 +1,4 @@
-﻿using Core.Models;
+﻿using Core.General.Models;
 
 namespace Application.Interfaces;
 public interface IQueryHandler<TOut>

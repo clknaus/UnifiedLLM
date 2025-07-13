@@ -1,5 +1,5 @@
-﻿using Core.Interfaces;
-using Core.Models;
+﻿using Core.Domain.Interfaces;
+using Core.Domain.Models;
 
 namespace Infrastructure.Models.OpenRouter;
 public class OpenRouterModelsResponse : IModelsResponse

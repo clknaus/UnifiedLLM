@@ -1,5 +1,5 @@
-﻿using Core.Interfaces;
-using Core.Models;
+﻿using Core.Domain.Interfaces;
+using Core.Domain.Models;
 
 namespace Application.Models;
 public class OpenRouterChatResponse : IChatResponse

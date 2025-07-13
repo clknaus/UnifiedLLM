@@ -1,5 +1,5 @@
-﻿using Core.Interfaces;
-using Core.Models;
+﻿using Core.Domain.Interfaces;
+using Core.General.Models;
 using Infrastructure.Models.OpenRouter;
 using System.Runtime.CompilerServices;
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Core.Entities;
+using Microsoft.Extensions.DependencyInjection;
 using System.Collections;
 
 namespace Core;
@@ -24,8 +25,6 @@ public abstract class Entity<TId> where TId : new()
 
         return EqualityComparer<TId>.Default.Equals(Id, other.Id);
     }
-
-    public override int GetHashCode() => Id?.GetHashCode() ?? 0;
 }
 
     public interface IAggregateRoot

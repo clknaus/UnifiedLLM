@@ -1,6 +1,6 @@
 ﻿using Application.Interfaces;
 using Application.Models;
-using Core.Interfaces;
+using Core.Domain.Interfaces;
 using Infrastructure.Extensions;
 using Microsoft.AspNetCore.Mvc;
 

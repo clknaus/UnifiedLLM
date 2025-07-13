@@ -1,6 +1,6 @@
 ﻿using Application.Models;
-using Core.Interfaces;
-using Core.Models;
+using Core.Domain.Interfaces;
+using Core.General.Models;
 
 namespace Application.Interfaces;
 public interface IChatService

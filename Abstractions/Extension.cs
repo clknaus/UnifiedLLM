@@ -1,5 +1,5 @@
-﻿using Core.Interfaces;
-using Core.Models;
+﻿using Core.General.Interfaces;
+using Core.General.Models;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 

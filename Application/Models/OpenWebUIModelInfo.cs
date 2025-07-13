@@ -1,4 +1,4 @@
-﻿using Core.Interfaces;
+﻿using Core.Domain.Interfaces;
 
 namespace Application.Models;
 public class OpenWebUIModelInfo : IModelInfo

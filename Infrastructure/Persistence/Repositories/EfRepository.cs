@@ -1,6 +1,6 @@
 ﻿using Core;
-using Core.Entities;
-using Core.Interfaces;
+using Core.Domain.Entities;
+using Core.Supportive.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence.Repositories;

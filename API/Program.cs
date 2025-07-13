@@ -2,8 +2,10 @@
 using Application.Interfaces;
 using Application.Services;
 using Core;
-using Core.Entities;
-using Core.Interfaces;
+using Core.Domain.Interfaces;
+using Core.General.Handler;
+using Core.General.Interfaces;
+using Core.Supportive.Interfaces;
 using Infrastructure;
 using Infrastructure.Interfaces.OpenRouter;
 using Infrastructure.Models.OpenRouter;
@@ -14,7 +16,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Extensions.Http;
-using System.Diagnostics;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -84,11 +85,14 @@ builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IQueryHandler<IModelsResponse>, GetAvailableModelsQueryHandler>();
 builder.Services.AddScoped<ICommandHandler<IChatRequest, IChatResponse>, CreateChatCompletionCommandHandler>();
 builder.Services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
+builder.Services.AddScoped<ITrackerService, TrackerService>();
 // Events
 builder.Services.AddScoped<IDomainEventHandler<ChatCompletedEvent>, ChatCompletedEventHandler>();
 // Infrastructure
 builder.Services.AddScoped(typeof(IAsyncRepository<>), typeof(EfRepository<>));
 builder.Services.AddScoped(typeof(IUnitOfWork), typeof(EfUnitOfWork));
+// Domain General
+builder.Services.AddScoped<IHashHandler, HashHandler>();
 
 
 // Controllers

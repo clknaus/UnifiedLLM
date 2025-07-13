@@ -1,4 +1,4 @@
-﻿using Core.Interfaces;
+﻿using Core.Domain.Interfaces;
 
 namespace Infrastructure.Models.OpenRouter;
 public class OpenRouterModelInfo : IModelInfo
