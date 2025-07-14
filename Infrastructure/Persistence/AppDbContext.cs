@@ -5,9 +5,7 @@ using System.Linq.Expressions;
 namespace Infrastructure.Persistence;
 public class AppDbContext : DbContext
 {
-    public DbSet<Anonymizer> AnonymizedChatRequest { get; set; } = null!;
     public DbSet<Chat> Chats { get; set; }  // Add this
-
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

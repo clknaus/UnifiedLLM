@@ -13,6 +13,7 @@ using Infrastructure.Persistence;
 using Infrastructure.Persistence.Repositories;
 using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Extensions.Http;
@@ -85,9 +86,9 @@ builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IQueryHandler<IModelsResponse>, GetAvailableModelsQueryHandler>();
 builder.Services.AddScoped<ICommandHandler<IChatRequest, IChatResponse>, CreateChatCompletionCommandHandler>();
 builder.Services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
-builder.Services.AddScoped<ITrackerService, TrackerService>();
+builder.Services.AddScoped<ITrackerService<Guid>, TrackerService<Guid>>();
 // Events
-builder.Services.AddScoped<IDomainEventHandler<ChatCompletedEvent>, ChatCompletedEventHandler>();
+builder.Services.AddScoped<IDomainEventHandler<ChatCycleCompletedEvent>, ChatCompletedEventHandler>();
 // Infrastructure
 builder.Services.AddScoped(typeof(IAsyncRepository<>), typeof(EfRepository<>));
 builder.Services.AddScoped(typeof(IUnitOfWork), typeof(EfUnitOfWork));

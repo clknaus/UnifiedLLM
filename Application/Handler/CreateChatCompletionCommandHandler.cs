@@ -1,7 +1,5 @@
-﻿using Abstractions;
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using Core.Domain.Interfaces;
-using Core.Extensions;
 using Core.General.Models;
 
 namespace Application.Handler;

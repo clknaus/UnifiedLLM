@@ -1,10 +1,10 @@
-﻿using Core.Domain.Entities;
+﻿using Core;
 
 namespace Application.Services;
-public interface ITrackerService
+public interface ITrackerService<TId> where TId : new()
 {
-    public bool IsTracked(Tracker tracker, TrackerAlgorithm strategy);
-    public bool IsTracked(Tracker tracker);
+    public bool IsTracked(Entity<TId> entity, TrackerAlgorithm strategy);
+    public bool IsTracked(Entity<TId> entity);
     public enum TrackerAlgorithm
     {
         Default = 0,

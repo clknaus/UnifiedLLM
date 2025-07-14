@@ -1,5 +1,4 @@
-﻿using Core.Entities;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using System.Collections;
 
 namespace Core;
@@ -7,6 +6,7 @@ namespace Core;
 public abstract class Entity<TId> where TId : new()
 {
     public TId Id { get; protected set; } = new();
+    public string Hash { get; set; }
 
     protected Entity()
     {
@@ -25,6 +25,8 @@ public abstract class Entity<TId> where TId : new()
 
         return EqualityComparer<TId>.Default.Equals(Id, other.Id);
     }
+
+    public virtual void SetHash(string hash) => Hash = hash;
 }
 
     public interface IAggregateRoot
@@ -91,21 +93,21 @@ public class DomainEventDispatcher : IDomainEventDispatcher
 }
 
 // Domain Event
-public class ChatCompletedEvent : IDomainEvent
+public class ChatCycleCompletedEvent : IDomainEvent
 {
     public Guid ChatId { get; }
     public DateTime OccurredOn { get; } = DateTime.UtcNow;
 
-    public ChatCompletedEvent(Guid chatId)
+    public ChatCycleCompletedEvent(Guid chatId)
     {
         ChatId = chatId;
     }
 }
 
 // Event Handler
-public class ChatCompletedEventHandler : IDomainEventHandler<ChatCompletedEvent>
+public class ChatCompletedEventHandler : IDomainEventHandler<ChatCycleCompletedEvent>
 {
-    public Task HandleAsync(ChatCompletedEvent domainEvent)
+    public Task HandleAsync(ChatCycleCompletedEvent domainEvent)
     {
         Console.WriteLine($"Chat with ID {domainEvent.ChatId} was completed at {domainEvent.OccurredOn}");
         return Task.CompletedTask;

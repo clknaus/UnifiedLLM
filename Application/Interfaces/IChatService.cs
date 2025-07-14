@@ -1,5 +1,4 @@
-﻿using Application.Models;
-using Core.Domain.Interfaces;
+﻿using Core.Domain.Interfaces;
 using Core.General.Models;
 
 namespace Application.Interfaces;

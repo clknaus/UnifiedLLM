@@ -1,10 +1,8 @@
 ﻿using Core.General.Models;
-using static Core.Domain.Entities.Tracker;
 
 namespace Core.Domain.Entities;
 public class Chat : AggregateRoot<Guid>
 {
-    internal Tracker Tracker { get; init; } = new Tracker();
     public ChatRequest ChatRequest { get; init; }
     public ChatResponse ChatResponse { get; init; }
 
@@ -19,7 +17,7 @@ public class Chat : AggregateRoot<Guid>
         if (!HasChatResponse)
             return Result<Chat>.Failure("ChatResponse is missing.");
         
-        AddDomainEvent(new ChatCompletedEvent(Id));
+        AddDomainEvent(new ChatCycleCompletedEvent(Id));
 
         return Result<Chat>.Success(this);
     }
