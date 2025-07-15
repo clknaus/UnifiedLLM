@@ -109,6 +109,7 @@ public class DomainEventDispatcher : IDomainEventDispatcher
 // Event Handler
 // TODO: research logic on Event Handler, compare it with Service Injection style logic.
 // TODO: try converting ChatCompletedEventHandler implementation to something more generic.
+// * * *
 //* * * * * * * * * * * * * * * * *
 //public abstract class DomainEvent
 //{
