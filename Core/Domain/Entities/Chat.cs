@@ -1,4 +1,5 @@
-﻿using Core.General.Models;
+﻿using Core.Domain.Events;
+using Core.General.Models;
 
 namespace Core.Domain.Entities;
 public class Chat : AggregateRoot<Guid>

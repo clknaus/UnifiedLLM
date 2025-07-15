@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Core.Domain.Events;
+using Microsoft.Extensions.DependencyInjection;
 using System.Collections;
 
 namespace Core;
@@ -29,6 +30,9 @@ public abstract class Entity<TId> where TId : new()
     public virtual void SetHash(string hash) => Hash = hash;
 }
 
+    //
+    // TODO: sort IAggregateRoot and Domain Events in architecture layers.
+    //
     public interface IAggregateRoot
     {
         IReadOnlyList<IDomainEvent> DomainEvents { get; }
@@ -54,21 +58,30 @@ public interface IDomainEventHandler<TEvent> where TEvent : IDomainEvent
     Task HandleAsync(TEvent domainEvent);
 }
 
+//
+// TODO: sort IRepository<T> in architecture layers.
+//
 public interface IRepository<T> where T : IAggregateRoot
 {
     Task<T?> GetByIdAsync(string id);
     Task SaveAsync(T entity);
 }
 
+// TODO: sort IUnitOfWork in architecture layers.
+
 public interface IUnitOfWork
 {
     Task<int> CommitAsync();
 }
 
+// TODO: sort IDomainEventDispatcher in architecture layers.
+
 public interface IDomainEventDispatcher
 {
     Task DispatchAsync(IDomainEvent domainEvent);
 }
+
+// TODO: sort DomainEventDispatcher Class along with Domain Events handler in architecture layers.
 
 public class DomainEventDispatcher : IDomainEventDispatcher
 {
@@ -81,9 +94,10 @@ public class DomainEventDispatcher : IDomainEventDispatcher
 
     public async Task DispatchAsync(IDomainEvent domainEvent)
     {
-        var handlerType = typeof(IDomainEventHandler<>).MakeGenericType(domainEvent.GetType());
-        var rawHandlers = _serviceProvider.GetServices(handlerType);
+        var domainHandlerType = typeof(IDomainEventHandler<>).MakeGenericType(domainEvent.GetType());
+        var rawHandlers = _serviceProvider.GetServices(domainHandlerType);
 
+        // guard
         if (rawHandlers is not IEnumerable enumerable)
             throw new ApplicationException();
 
@@ -92,19 +106,27 @@ public class DomainEventDispatcher : IDomainEventDispatcher
     }
 }
 
-// Domain Event
-public class ChatCycleCompletedEvent : IDomainEvent
-{
-    public Guid ChatId { get; }
-    public DateTime OccurredOn { get; } = DateTime.UtcNow;
-
-    public ChatCycleCompletedEvent(Guid chatId)
-    {
-        ChatId = chatId;
-    }
-}
-
 // Event Handler
+// TODO: research logic on Event Handler, compare it with Service Injection style logic.
+// TODO: try converting ChatCompletedEventHandler implementation to something more generic.
+//* * * * * * * * * * * * * * * * *
+//public abstract class DomainEvent
+//{
+//    public DateTime OccurredOn { get; } = DateTime.UtcNow;
+//}
+
+//public class ChatCycleCompletedEvent : DomainEvent
+//{
+//    public Guid ChatId { get; }
+//    public ChatCycleCompletedEvent(Guid chatId) => ChatId = chatId;
+//}
+
+//public interface IDomainEventHandler<in TEvent> where TEvent : DomainEvent
+//{
+//    Task HandleAsync(TEvent domainEvent);
+//}
+//* * * * * * * * * * * * * * * * *
+
 public class ChatCompletedEventHandler : IDomainEventHandler<ChatCycleCompletedEvent>
 {
     public Task HandleAsync(ChatCycleCompletedEvent domainEvent)
