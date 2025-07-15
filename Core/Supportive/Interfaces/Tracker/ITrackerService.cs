@@ -1,6 +1,5 @@
-﻿using Core;
+﻿namespace Core.Supportive.Interfaces.Tracker;
 
-namespace Core.Supportive.Interfaces.Tracker;
 public interface ITrackerService<TId> where TId : new()
 {
     public bool IsTracked(Entity<TId> entity, Algorithm strategy);
