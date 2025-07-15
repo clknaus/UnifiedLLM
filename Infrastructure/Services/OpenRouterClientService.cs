@@ -2,7 +2,7 @@
 using Application.Models;
 using Core.Domain.Interfaces;
 using Core.General.Models;
-using Infrastructure.Interfaces.OpenRouter;
+using Infrastructure.Interfaces.Providers.OpenRouter;
 using Infrastructure.Models.OpenRouter;
 using Microsoft.Extensions.Options;
 using System.Runtime.CompilerServices;
@@ -10,7 +10,7 @@ using System.Text;
 using System.Text.Json;
 
 namespace Infrastructure.Services;
-public class OpenRouterClientService : IOpenRouterClientService
+public class OpenRouterClientService : IProviderClientService
 {
     private readonly HttpClient _httpClient;
     private readonly OpenRouterConfiguration _opts;

@@ -3,7 +3,6 @@ using Core.Domain.Interfaces;
 using Core.General.Models;
 
 namespace Application.Handler;
-public record CreateChatCompletionCommand(IChatRequest Request);
 
 public class CreateChatCompletionCommandHandler(IChatService chatService) : ICommandHandler<IChatRequest, IChatResponse>
 {

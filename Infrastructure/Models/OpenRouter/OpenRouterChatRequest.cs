@@ -2,7 +2,7 @@
 using Core.Domain.Models;
 
 namespace Infrastructure.Models.OpenRouter;
-public class OpenRouterChatRequest : IChatRequest
+public class OpenRouterChatRequest : IChatRequest, IChatTracker
 {
     //public string? Provider { get; set; }
     public string Model { get; set; }

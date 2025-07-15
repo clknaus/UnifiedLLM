@@ -1,11 +1,11 @@
 ﻿using Core;
 
-namespace Application.Services;
+namespace Core.Supportive.Interfaces.Tracker;
 public interface ITrackerService<TId> where TId : new()
 {
-    public bool IsTracked(Entity<TId> entity, TrackerAlgorithm strategy);
+    public bool IsTracked(Entity<TId> entity, Algorithm strategy);
     public bool IsTracked(Entity<TId> entity);
-    public enum TrackerAlgorithm
+    public enum Algorithm
     {
         Default = 0,
         Id = 1,

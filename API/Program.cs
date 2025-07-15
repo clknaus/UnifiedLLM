@@ -6,8 +6,9 @@ using Core.Domain.Interfaces;
 using Core.General.Handler;
 using Core.General.Interfaces;
 using Core.Supportive.Interfaces;
+using Core.Supportive.Interfaces.Tracker;
 using Infrastructure;
-using Infrastructure.Interfaces.OpenRouter;
+using Infrastructure.Interfaces.Providers.OpenRouter;
 using Infrastructure.Models.OpenRouter;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Repositories;
@@ -63,7 +64,7 @@ builder.Services.Configure<OpenRouterConfiguration>(
 
 
 builder.Services
-    .AddHttpClient<IOpenRouterClientService, OpenRouterClientService>((serviceProvider, httpClient) =>
+    .AddHttpClient<IProviderClientService, OpenRouterClientService>((serviceProvider, httpClient) =>
     {
         var openRouterConfigurationOption = serviceProvider?.GetRequiredService<IOptions<OpenRouterConfiguration>>()?.Value ?? throw new ArgumentNullException();
         openRouterConfigurationOption.ApiKey = secrets.OpenRouterConfiguration.ApiKey;

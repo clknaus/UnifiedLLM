@@ -1,8 +1,9 @@
 ﻿using Core.Domain.Interfaces;
 using Core.Domain.Models;
+using Infrastructure.Models.OpenRouter;
 
 namespace Application.Models;
-public class OpenRouterChatResponse : IChatResponse
+public class OpenRouterChatResponse : IChatResponse, IChatTracker
 {
     public string Id { get; set; }
     public string Object { get; set; }

@@ -8,6 +8,8 @@
 
   <ItemGroup>
     <Folder Include="Services\" />
+    <Folder Include="Supportive\Interfaces\DomainEvents\" />
+    <Folder Include="Supportive\Interfaces\Repository\" />
   </ItemGroup>
 
   <ItemGroup>

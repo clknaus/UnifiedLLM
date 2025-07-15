@@ -4,10 +4,10 @@ using Core.Domain.Entities;
 using Core.Domain.Interfaces;
 using Core.General.Models;
 using Core.Supportive.Interfaces;
-using Infrastructure.Interfaces.OpenRouter;
+using Infrastructure.Interfaces.Providers.OpenRouter;
 
 namespace Application.Services;
-public class ChatService(IOpenRouterClientService openRouterClientService, IAsyncRepository<Chat> chatAsyncRepository, IUnitOfWork unitOfWork) : IChatService
+public class ChatService(IProviderClientService openRouterClientService, IAsyncRepository<Chat> chatAsyncRepository, IUnitOfWork unitOfWork) : IChatService
 {
     public async Task<Result<IChatResponse>> CreateChatCompletionAsync(IChatRequest request, CancellationToken cancellationToken = default)
     {

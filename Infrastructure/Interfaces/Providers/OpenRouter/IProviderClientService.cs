@@ -3,8 +3,8 @@ using Core.General.Models;
 using Infrastructure.Models.OpenRouter;
 using System.Runtime.CompilerServices;
 
-namespace Infrastructure.Interfaces.OpenRouter;
-public interface IOpenRouterClientService
+namespace Infrastructure.Interfaces.Providers.OpenRouter;
+public interface IProviderClientService
 {
     Task<Result<IChatResponse>> CreateChatCompletionAsync(IChatRequest request, CancellationToken cancellationToken = default);
     Task<Result<IModelsResponse>> GetAvailableModelsAsync(CancellationToken cancellationToken = default);

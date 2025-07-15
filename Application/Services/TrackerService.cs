@@ -1,27 +1,33 @@
 ﻿using Core;
 using Core.General.Interfaces;
+using Core.Supportive.Interfaces.Tracker;
 
 namespace Application.Services;
 public class TrackerService<TId>(IHashHandler hashHandler) : ITrackerService<TId> where TId : new()
 {
-    public bool IsTracked(Entity<TId> entity, ITrackerService<TId>.TrackerAlgorithm strategy)
+    public bool IsTracked(Entity<TId> entity, ITrackerService<TId>.Algorithm strategy)
     {
         if (entity is null)
             return false;
 
         switch (strategy)
         {
-            case ITrackerService<TId>.TrackerAlgorithm.Id:
+            case ITrackerService<TId>.Algorithm.Id:
                 return entity.Id != null;
-            case ITrackerService<TId>.TrackerAlgorithm.Hash:
+
+            case ITrackerService<TId>.Algorithm.Hash:
                 return hashHandler.IsHash(entity.Hash);
-            case ITrackerService<TId>.TrackerAlgorithm.StringComparision:
+
+            case ITrackerService<TId>.Algorithm.StringComparision:
                 // TODO
                 return false;
-            case ITrackerService<TId>.TrackerAlgorithm.ContentSimilarity:
+
+            case ITrackerService<TId>.Algorithm.ContentSimilarity:
                 return false;
-            case ITrackerService<TId>.TrackerAlgorithm.CosineSimilarity:
+
+            case ITrackerService<TId>.Algorithm.CosineSimilarity:
                 return false;
+
             default:
                 // TrackerAlgorithm.Default
                 // chain / builer pattern
@@ -34,12 +40,10 @@ public class TrackerService<TId>(IHashHandler hashHandler) : ITrackerService<TId
         if (entity == null)
             return false;
 
-        return IsTracked(entity, strategy: ITrackerService<TId>.TrackerAlgorithm.Id)
-            || IsTracked(entity, strategy: ITrackerService<TId>.TrackerAlgorithm.Hash)
-            || IsTracked(entity, strategy: ITrackerService<TId>.TrackerAlgorithm.StringComparision)
-            || IsTracked(entity, strategy: ITrackerService<TId>.TrackerAlgorithm.ContentSimilarity)
-            || IsTracked(entity, strategy: ITrackerService<TId>.TrackerAlgorithm.CosineSimilarity);
+        return IsTracked(entity, strategy: ITrackerService<TId>.Algorithm.Id)
+            || IsTracked(entity, strategy: ITrackerService<TId>.Algorithm.Hash)
+            || IsTracked(entity, strategy: ITrackerService<TId>.Algorithm.StringComparision)
+            || IsTracked(entity, strategy: ITrackerService<TId>.Algorithm.ContentSimilarity)
+            || IsTracked(entity, strategy: ITrackerService<TId>.Algorithm.CosineSimilarity);
     }
-
-
 }
