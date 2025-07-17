@@ -1,4 +1,6 @@
-﻿namespace Core.Domain.Entities;
+﻿using Core.General.Models;
+
+namespace Core.Domain.Entities;
 
 public abstract class BaseEntity : Entity<Guid>
 {

@@ -1,4 +1,6 @@
-﻿namespace Core.Supportive.Interfaces.Tracker;
+﻿using Core.General.Models;
+
+namespace Core.Supportive.Interfaces.Tracker;
 
 public interface ITrackerService<TId> where TId : new()
 {

@@ -1,5 +1,6 @@
 ﻿using Core;
 using Core.Domain.Entities;
+using Core.General.Interfaces;
 using Core.Supportive.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -43,11 +44,11 @@ public class EfRepository<T> : IAsyncRepository<T> where T : class, IAggregateRo
 
     public async Task SoftDeleteAsync(T entity)
     {
-        if (entity is BaseEntity baseEntity)
-        {
-            baseEntity.IsDeleted = true;
-            await UpdateAsync(entity);
-        }
+        if (entity is not BaseEntity baseEntity)
+            return;
+
+        baseEntity.IsDeleted = true;
+        await UpdateAsync(entity);
     }
 
     public async Task<IEnumerable<T>> GetPagedResponseAsync(int page, int size)

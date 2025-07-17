@@ -1,8 +1,7 @@
-﻿using Core;
-using Infrastructure.Persistence;
+﻿using Core.General.Interfaces;
+using Core.Supportive.Interfaces.DomainEvents;
 
-namespace Infrastructure;
-
+namespace Infrastructure.Persistence.Repositories;
 public class EfUnitOfWork : IUnitOfWork
 {
     private readonly AppDbContext _context;
@@ -21,7 +20,7 @@ public class EfUnitOfWork : IUnitOfWork
         var aggregates = _context.ChangeTracker
             .Entries<IAggregateRoot>()
             .Select(e => e.Entity)
-            .Where(e => e.DomainEvents.Any())
+            .Where(e => e.GetDomainEvents().Any())
             .ToList();
 
 #if debug
@@ -36,7 +35,7 @@ public class EfUnitOfWork : IUnitOfWork
 
         foreach (var aggregate in aggregates)
         {
-            foreach (var domainEvent in aggregate.DomainEvents)
+            foreach (var domainEvent in aggregate.GetDomainEvents())
             {
                 await _dispatcher.DispatchAsync(domainEvent);
             }

@@ -7,6 +7,7 @@ using Core.Domain.Interfaces;
 using Core.General.Handler;
 using Core.General.Interfaces;
 using Core.Supportive.Interfaces;
+using Core.Supportive.Interfaces.DomainEvents;
 using Core.Supportive.Interfaces.Tracker;
 using Infrastructure;
 using Infrastructure.Interfaces.Providers.OpenRouter;
@@ -90,7 +91,7 @@ builder.Services.AddScoped<ICommandHandler<IChatRequest, IChatResponse>, CreateC
 builder.Services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
 builder.Services.AddScoped<ITrackerService<Guid>, TrackerService<Guid>>();
 // Events
-builder.Services.AddScoped<IDomainEventHandler<ChatCycleCompletedEvent>, ChatCompletedEventHandler>();
+builder.Services.AddScoped<IAsyncDomainEventHandler<ChatCycleCompletedEvent>, ChatCompletedHandler>();
 // Infrastructure
 builder.Services.AddScoped(typeof(IAsyncRepository<>), typeof(EfRepository<>));
 builder.Services.AddScoped(typeof(IUnitOfWork), typeof(EfUnitOfWork));

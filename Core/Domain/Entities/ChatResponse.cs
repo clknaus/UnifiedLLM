@@ -1,5 +1,6 @@
 ﻿using Core.Domain.Interfaces;
 using Core.Domain.Models;
+using Core.General.Models;
 
 namespace Core.Domain.Entities;
 public class ChatResponse : Entity<Guid>, IChatResponse

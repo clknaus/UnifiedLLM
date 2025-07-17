@@ -1,11 +1,5 @@
 ﻿namespace Core.Domain.Events;
-public class ChatCycleCompletedEvent : IDomainEvent
+public class ChatCycleCompletedEvent(Guid chatId) : DomainEventBase
 {
-    public Guid ChatId { get; } = Guid.NewGuid();
-    public DateTime OccurredOn { get; } = DateTime.UtcNow;
-
-    public ChatCycleCompletedEvent(Guid chatId)
-    {
-        ChatId = chatId;
-    }
+    public Guid ChatId { get; } = chatId;
 }

@@ -1,5 +1,6 @@
 ﻿using Core;
 using Core.General.Interfaces;
+using Core.General.Models;
 using Core.Supportive.Interfaces.Tracker;
 
 namespace Application.Services;
@@ -16,7 +17,7 @@ public class TrackerService<TId>(IHashHandler hashHandler) : ITrackerService<TId
                 return entity.Id != null;
 
             case ITrackerService<TId>.Algorithm.Hash:
-                return hashHandler.IsHash(entity.Hash);
+                return hashHandler.IsHash(entity.GetHashCode().ToString());
 
             case ITrackerService<TId>.Algorithm.StringComparision:
                 // TODO

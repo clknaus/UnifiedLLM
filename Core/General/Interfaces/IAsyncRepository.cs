@@ -1,4 +1,6 @@
-﻿namespace Core.Supportive.Interfaces;
+﻿using Core.General.Interfaces;
+
+namespace Core.Supportive.Interfaces;
 
 public interface IAsyncRepository<T> where T : class, IAggregateRoot
 {
