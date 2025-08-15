@@ -4,10 +4,11 @@ namespace Application.Events;
 
 public class ErrorLogEvent : DomainEventBase
 {
-    public readonly string Error;
+    public string Error { get; set; }
 
+    public ErrorLogEvent() { }
     public ErrorLogEvent(string error)
     {
-        this.Error = error;
+        Error = error;
     }
 }

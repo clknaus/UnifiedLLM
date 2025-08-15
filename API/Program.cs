@@ -110,6 +110,8 @@ builder.Services.AddControllers()
 // Logging
 builder.Logging.AddFilter("System.Net.Http.HttpClient", LogLevel.Information);
 builder.Logging.AddFilter("Polly", LogLevel.Debug);
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
 
 var app = builder.Build();
 app.UseRouting();

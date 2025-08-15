@@ -8,7 +8,10 @@ public abstract class DomainEventBase : IDomainEvent
     public DateTime OccurredOn { get; } = DateTime.UtcNow;
     public int Version { get; } = 1;
     public IReadOnlyDictionary<string, object> Metadata { get; }
-
+    protected DomainEventBase()
+    {
+        Metadata = new Dictionary<string, object>();
+    }
     protected DomainEventBase(IReadOnlyDictionary<string, object>? metadata = null)
     {
         Metadata = metadata ?? new Dictionary<string, object>();

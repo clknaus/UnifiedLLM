@@ -57,7 +57,8 @@ public class EfUnitOfWork : IUnitOfWork
 
         foreach (var outboxEvent in outboxEvents)
         {
-            await _dispatcher.DispatchAsync(DomainEventSerializer.Deserialize(outboxEvent));
+            var deserializedOutboxEvent = DomainEventSerializer.Deserialize(outboxEvent);
+            await _dispatcher.DispatchAsync(deserializedOutboxEvent);
 
             outboxEvent.IsDispatched = true;
             _context.Set<OutboxEvent>().Update(outboxEvent);
