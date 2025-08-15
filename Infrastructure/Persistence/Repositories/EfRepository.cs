@@ -1,11 +1,10 @@
-﻿using Core;
-using Core.Domain.Entities;
+﻿using Core.Domain.Entities;
 using Core.General.Interfaces;
 using Core.Supportive.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence.Repositories;
-public class EfRepository<T> : IAsyncRepository<T> where T : class, IAggregateRoot
+public class EfRepository<T> : IAsyncRepository<T> where T : class, IAggregateRootGeneric<T>
 {
     private readonly AppDbContext _context;
     private readonly DbSet<T> _dbSet;
@@ -13,7 +12,7 @@ public class EfRepository<T> : IAsyncRepository<T> where T : class, IAggregateRo
     public EfRepository(AppDbContext context)
     {
         _context = context;
-        _dbSet = context.Set<T>();
+        _dbSet = _context.Set<T>();
     }
 
     public async Task<T?> GetByIdAsync(Guid id)

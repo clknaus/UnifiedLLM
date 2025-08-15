@@ -33,5 +33,5 @@ public class DomainEventDispatcher : IDomainEventDispatcher
             await DispatchAsync(domainEvent);
     }
 
-    public async Task DispatchAsync<TEvent>(TEvent domainEvent) where TEvent : IDomainEvent => await DispatchAsync(domainEvent);
+    public async Task DispatchAsync<TEvent>(TEvent domainEvent) where TEvent : IDomainEvent => await DispatchAsync((IDomainEvent)domainEvent);
 }

@@ -1,7 +1,7 @@
-﻿using Application.Handler;
+﻿using Application.Events;
+using Application.Handler;
 using Application.Interfaces;
 using Application.Services;
-using Core;
 using Core.Domain.Events;
 using Core.Domain.Interfaces;
 using Core.General.Handler;
@@ -9,14 +9,12 @@ using Core.General.Interfaces;
 using Core.Supportive.Interfaces;
 using Core.Supportive.Interfaces.DomainEvents;
 using Core.Supportive.Interfaces.Tracker;
-using Infrastructure;
 using Infrastructure.Interfaces.Providers.OpenRouter;
 using Infrastructure.Models.OpenRouter;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Repositories;
 using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Extensions.Http;
@@ -88,16 +86,18 @@ builder.Services.AddScoped<IChatService, ChatService>();
 // Application Handler
 builder.Services.AddScoped<IQueryHandler<IModelsResponse>, GetAvailableModelsQueryHandler>();
 builder.Services.AddScoped<ICommandHandler<IChatRequest, IChatResponse>, CreateChatCompletionCommandHandler>();
-builder.Services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
-builder.Services.AddScoped<ITrackerService<Guid>, TrackerService<Guid>>();
 // Events
-builder.Services.AddScoped<IAsyncDomainEventHandler<ChatCycleCompletedEvent>, ChatCompletedHandler>();
+builder.Services.AddScoped<IAsyncDomainEventHandler<ChatCompletedEvent>, ChatCompletedHandler>();
+builder.Services.AddScoped<IAsyncDomainEventHandler<ErrorLogEvent>, ErrorLogEventHandler>();
 // Infrastructure
 builder.Services.AddScoped(typeof(IAsyncRepository<>), typeof(EfRepository<>));
 builder.Services.AddScoped(typeof(IUnitOfWork), typeof(EfUnitOfWork));
+// Domain Supportive
+builder.Services.AddScoped(typeof(IDomainEventQueue), typeof(DomainEventQueue));
+builder.Services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
+builder.Services.AddScoped<ITrackerService<Guid>, TrackerService<Guid>>();
 // Domain General
 builder.Services.AddScoped<IHashHandler, HashHandler>();
-
 
 // Controllers
 builder.Services.AddControllers()

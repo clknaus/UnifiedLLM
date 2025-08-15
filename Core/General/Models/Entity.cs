@@ -1,7 +1,7 @@
 ﻿namespace Core.General.Models;
 public abstract class Entity<TId> where TId : new()
 {
-    public TId Id { get; private set; } = new();
+    public virtual TId Id { get; private set; } = new();
 
     protected Entity()
     {

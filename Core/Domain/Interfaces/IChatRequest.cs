@@ -1,10 +1,10 @@
 ﻿using Core.Domain.Models;
 
 namespace Core.Domain.Interfaces;
-public interface IChatRequest
-{
-    //string? Provider { get; set; }
-    string? Id { get; set; }
+    public interface IChatRequest
+    {
+        //string? Provider { get; set; }
+        string? Id { get; set; }
     string Model { get; set; }
     IEnumerable<ChatMessage> Messages { get; set; }
     //double? Temperature { get; set; }

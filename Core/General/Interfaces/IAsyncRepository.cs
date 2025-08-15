@@ -2,7 +2,7 @@
 
 namespace Core.Supportive.Interfaces;
 
-public interface IAsyncRepository<T> where T : class, IAggregateRoot
+public interface IAsyncRepository<T> where T : class, IAggregateRootGeneric<T>
 {
     Task<T?> GetByIdAsync(Guid id);
     Task<IEnumerable<T>> ListAllAsync();

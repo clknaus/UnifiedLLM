@@ -6,6 +6,7 @@ public class Result<T> : IResult
     public bool IsSuccess { get; }
     public bool IsFailure => !IsSuccess;
     public T? Value { get; }
+    public T? ValueOrThrow => IsSuccess ? Value : throw new Exception("Result object was not provided.");
     public string Error { get; }
     public ErrorType? ErrorType { get; }
 

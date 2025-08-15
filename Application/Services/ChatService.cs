@@ -1,5 +1,7 @@
-﻿using Application.Interfaces;
+﻿using Application.Events;
+using Application.Interfaces;
 using Core.Domain.Entities;
+using Core.Domain.Events;
 using Core.Domain.Interfaces;
 using Core.General.Interfaces;
 using Core.General.Models;
@@ -7,17 +9,14 @@ using Core.Supportive.Interfaces;
 using Infrastructure.Interfaces.Providers.OpenRouter;
 
 namespace Application.Services;
-public class ChatService(IProviderClientService openRouterClientService, IAsyncRepository<Chat> chatAsyncRepository, IUnitOfWork unitOfWork) : IChatService
+public class ChatService(IProviderClientService openRouterClientService, IAsyncRepository<Chat> chatAsyncRepository, IUnitOfWork unitOfWork, IDomainEventQueue domainEventQueue) : IChatService
 {
     public async Task<Result<IChatResponse>> CreateChatCompletionAsync(IChatRequest request, CancellationToken cancellationToken = default)
     {
         request.Stream = false; // TODO enable streaming
 
         // create or get chat entity along with a guid
-        var chat = new Chat();
-        chat.ValidateThenRaiseEvent();
-        Chat entity = await chatAsyncRepository.AddAsync(chat);
-        await unitOfWork.CommitAsync();
+
 
         // keep track of the saved entity by guid
         // get or hash text to keep track of chat entity
@@ -28,8 +27,32 @@ public class ChatService(IProviderClientService openRouterClientService, IAsyncR
         // use Functor as object to command a call (research cosine similarity behavior for getting the right function)
         // call Functor along with IOpenRouteClientService to determine function so that semantics are sure.
         // parameterize preferred model for every call in IOpenRouteClientService
+        var response = await openRouterClientService.CreateChatCompletionAsync(request, cancellationToken);
+        if (response.IsFailure)
+        {
+            domainEventQueue.Enqueue(new ErrorLogEvent(response.Error));
+            await unitOfWork.CommitAsync();
+            return response;
+        }
 
-        return await openRouterClientService.CreateChatCompletionAsync(request, cancellationToken);
+        var chat = new Chat()
+        {
+            ChatRequest = new ChatRequest(request),
+            ChatResponse = new ChatResponse(response.Value!)
+        };
+
+        var validatedChatResult = chat.ValidateThenRaiseEvent();
+        if (validatedChatResult.IsFailure)
+        {
+            domainEventQueue.Enqueue(new ErrorLogEvent(validatedChatResult.Error));
+        }
+        else
+        {
+            await chatAsyncRepository.AddAsync(validatedChatResult.Value!);
+        }
+
+        await unitOfWork.CommitAsync();
+        return response;
 
         //return new OpenWebUIChatResponse
         //{

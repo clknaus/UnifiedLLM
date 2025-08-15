@@ -1,4 +1,5 @@
-﻿using Core.Domain.Models;
+﻿using Core.Domain.Entities;
+using Core.Domain.Models;
 
 namespace Core.Domain.Interfaces;
 public interface IChatResponse

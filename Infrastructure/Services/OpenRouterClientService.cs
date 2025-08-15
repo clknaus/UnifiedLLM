@@ -44,7 +44,7 @@ public class OpenRouterClientService : IProviderClientService
         catch (Exception)
         {
             _httpClient?.Dispose();
-            return Result<IChatResponse>.Failure();
+            return Result<IChatResponse>.Failure("response from provider wasn't processed.");
         }
     }
 

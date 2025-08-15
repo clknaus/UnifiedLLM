@@ -9,4 +9,5 @@ public abstract class AsyncDomainEventHandler<TEvent> : IAsyncDomainEventHandler
     public virtual int Order => 0;
     public abstract Task<Result<HandlerResult>> HandleAsync(TEvent domainEvent);
     protected Result<HandlerResult> Success => Result<HandlerResult>.Success(HandlerResult.Success);
+    protected Result<HandlerResult> Failed => Result<HandlerResult>.Failure();
 }

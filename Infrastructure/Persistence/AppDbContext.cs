@@ -5,7 +5,8 @@ using System.Linq.Expressions;
 namespace Infrastructure.Persistence;
 public class AppDbContext : DbContext
 {
-    public DbSet<Chat> Chats { get; set; }  // Add this
+    public DbSet<Chat> Chats { get; set; }
+    public DbSet<OutboxEvent> OutboxEvents { get; set; }
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
