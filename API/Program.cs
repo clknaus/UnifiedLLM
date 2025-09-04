@@ -1,6 +1,7 @@
 ﻿using Application.Events;
 using Application.Handler;
 using Application.Interfaces;
+using Application.Models;
 using Application.Services;
 using Core.Domain.Events;
 using Core.Domain.Interfaces;
@@ -9,11 +10,13 @@ using Core.General.Interfaces;
 using Core.Supportive.Interfaces;
 using Core.Supportive.Interfaces.DomainEvents;
 using Core.Supportive.Interfaces.Tracker;
+using Infrastructure.Extensions;
 using Infrastructure.Interfaces.Providers.OpenRouter;
 using Infrastructure.Models.OpenRouter;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Repositories;
 using Infrastructure.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Polly;
@@ -58,9 +61,9 @@ static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy() =>
         .CircuitBreakerAsync(5, TimeSpan.FromSeconds(30));
 
 // Infrastructure
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.Configure<OpenRouterConfiguration>(
     builder.Configuration.GetSection(OpenRouterConfiguration.SectionName));
-
 
 
 builder.Services
@@ -80,6 +83,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
 
 // Dependency Injections
+// TODO DependenyInjector
 
 // Application
 builder.Services.AddScoped<IChatService, ChatService>();
@@ -99,14 +103,6 @@ builder.Services.AddScoped<ITrackerService<Guid>, TrackerService<Guid>>();
 // Domain General
 builder.Services.AddScoped<IHashHandler, HashHandler>();
 
-// Controllers
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
-    });
-
 // Logging
 builder.Logging.AddFilter("System.Net.Http.HttpClient", LogLevel.Information);
 builder.Logging.AddFilter("Polly", LogLevel.Debug);
@@ -114,9 +110,32 @@ builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
 var app = builder.Build();
+
+
+app.MapGet("/api/v1/models", async (
+    IQueryHandler<IModelsResponse> handler
+) =>
+{
+    var result = await handler.HandleAsync();
+    return result.ToMinimalApiResult();
+})
+.WithName("GetModels")
+.WithTags("Models");
+
+app.MapPost("/api/v1/chat/completions", async (
+    ICommandHandler<IChatRequest, IChatResponse> handler,
+    [FromBody] OpenWebUIChatRequest request
+) =>
+{
+    var result = await handler.HandleAsync(request);
+    return result.ToMinimalApiResult();
+})
+.WithName("ChatCompletions")
+.WithTags("Chat"); // Swagger grouping
+
 app.UseRouting();
 //app.UseAuthentication();
-app.MapControllers();
+//app.MapControllers();
 
 System.Console.WriteLine("Application ready ...");
 app.Run();

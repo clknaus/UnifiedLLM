@@ -7,14 +7,14 @@ public class Result<T> : IResult
     public bool IsFailure => !IsSuccess;
     public T? Value { get; }
     public T? ValueOrThrow => IsSuccess ? Value : throw new Exception("Result object was not provided.");
-    public string Error { get; }
+    public string ErrorMessage { get; }
     public ErrorType? ErrorType { get; }
 
     private Result(bool isSuccess, T? value, string? error, ErrorType? errorType)
     {
         IsSuccess = isSuccess;
         Value = value;
-        Error = error ?? "An error occurred while processing the request.";
+        ErrorMessage = IsFailure ? error ?? "An error occurred while processing the request." : string.Empty;
         ErrorType = errorType;
     }
 

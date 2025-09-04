@@ -34,7 +34,7 @@ public static class Extension
     public static Result<T> AsResultSuccess<T>(this T? obj) where T : class => Result<T>.Success(obj);
     public static Result<U> AsResultFailed<U>(this IResult? result) where U : class
     {
-        return Result<U>.Failure(result?.Error ?? "Error");
+        return Result<U>.Failure(result?.ErrorMessage ?? "Error");
     }
 
     public static async Task<Result<T>> TryOrReturn<T>(

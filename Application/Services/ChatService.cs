@@ -30,7 +30,7 @@ public class ChatService(IProviderClientService openRouterClientService, IAsyncR
         var response = await openRouterClientService.CreateChatCompletionAsync(request, cancellationToken);
         if (response.IsFailure)
         {
-            domainEventQueue.Enqueue(new ErrorLogEvent(response.Error));
+            domainEventQueue.Enqueue(new ErrorLogEvent(response.ErrorMessage));
             await unitOfWork.CommitAsync();
             return response;
         }
@@ -44,7 +44,7 @@ public class ChatService(IProviderClientService openRouterClientService, IAsyncR
         var validatedChatResult = chat.ValidateThenRaiseEvent();
         if (validatedChatResult.IsFailure)
         {
-            domainEventQueue.Enqueue(new ErrorLogEvent(validatedChatResult.Error));
+            domainEventQueue.Enqueue(new ErrorLogEvent(validatedChatResult.ErrorMessage));
         }
         else
         {
