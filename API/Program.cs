@@ -1,4 +1,6 @@
-﻿using Application.Events;
+﻿using API;
+using API.Endpoints;
+using Application.Events;
 using Application.Handler;
 using Application.Interfaces;
 using Application.Models;
@@ -10,6 +12,7 @@ using Core.General.Interfaces;
 using Core.Supportive.Interfaces;
 using Core.Supportive.Interfaces.DomainEvents;
 using Core.Supportive.Interfaces.Tracker;
+using Infrastructure;
 using Infrastructure.Extensions;
 using Infrastructure.Interfaces.Providers.OpenRouter;
 using Infrastructure.Models.OpenRouter;
@@ -82,26 +85,7 @@ builder.Services
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
 
-// Dependency Injections
-// TODO DependenyInjector
-
-// Application
-builder.Services.AddScoped<IChatService, ChatService>();
-// Application Handler
-builder.Services.AddScoped<IQueryHandler<IModelsResponse>, GetAvailableModelsQueryHandler>();
-builder.Services.AddScoped<ICommandHandler<IChatRequest, IChatResponse>, CreateChatCompletionCommandHandler>();
-// Events
-builder.Services.AddScoped<IAsyncDomainEventHandler<ChatCompletedEvent>, ChatCompletedHandler>();
-builder.Services.AddScoped<IAsyncDomainEventHandler<ErrorLogEvent>, ErrorLogEventHandler>();
-// Infrastructure
-builder.Services.AddScoped(typeof(IAsyncRepository<>), typeof(EfRepository<>));
-builder.Services.AddScoped(typeof(IUnitOfWork), typeof(EfUnitOfWork));
-// Domain Supportive
-builder.Services.AddScoped(typeof(IDomainEventQueue), typeof(DomainEventQueue));
-builder.Services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
-builder.Services.AddScoped<ITrackerService<Guid>, TrackerService<Guid>>();
-// Domain General
-builder.Services.AddScoped<IHashHandler, HashHandler>();
+IoCDependencyInjector.Map(builder);
 
 // Logging
 builder.Logging.AddFilter("System.Net.Http.HttpClient", LogLevel.Information);
@@ -110,28 +94,8 @@ builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
 var app = builder.Build();
+ChatEndpoints.Map(app);
 
-
-app.MapGet("/api/v1/models", async (
-    IQueryHandler<IModelsResponse> handler
-) =>
-{
-    var result = await handler.HandleAsync();
-    return result.ToMinimalApiResult();
-})
-.WithName("GetModels")
-.WithTags("Models");
-
-app.MapPost("/api/v1/chat/completions", async (
-    ICommandHandler<IChatRequest, IChatResponse> handler,
-    [FromBody] OpenWebUIChatRequest request
-) =>
-{
-    var result = await handler.HandleAsync(request);
-    return result.ToMinimalApiResult();
-})
-.WithName("ChatCompletions")
-.WithTags("Chat"); // Swagger grouping
 
 app.UseRouting();
 //app.UseAuthentication();
