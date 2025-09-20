@@ -1,6 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
-using Core.General.Interfaces;
-using Core.General.Models;
+﻿using Core.General.Models;
+using Microsoft.AspNetCore.Http;
 using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace Infrastructure.Extensions;

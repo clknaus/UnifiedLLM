@@ -1,56 +1,49 @@
 ﻿using API;
 using API.Endpoints;
-using Application.Events;
-using Application.Handler;
-using Application.Interfaces;
-using Application.Models;
-using Application.Services;
-using Core.Domain.Events;
-using Core.Domain.Interfaces;
-using Core.General.Handler;
-using Core.General.Interfaces;
-using Core.Supportive.Interfaces;
-using Core.Supportive.Interfaces.DomainEvents;
-using Core.Supportive.Interfaces.Tracker;
-using Infrastructure;
-using Infrastructure.Extensions;
+using Core.General.Extensions;
 using Infrastructure.Interfaces.Providers.OpenRouter;
 using Infrastructure.Models.OpenRouter;
 using Infrastructure.Persistence;
-using Infrastructure.Persistence.Repositories;
 using Infrastructure.Services;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Extensions.Http;
-using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Configuration
-// appsettings.json
+var currentDir = Directory.GetCurrentDirectory();
+var parentDir = Directory.GetParent(currentDir);
+
 var config = new ConfigurationBuilder()
-    .SetBasePath(Directory.GetCurrentDirectory())
-     .AddJsonFile(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).FullName, "Configuration", "appsettings.json"), optional: false, reloadOnChange: true)
-     .AddJsonFile(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).FullName, "Configuration", "secrets.json"), optional: false, reloadOnChange: true)
+    .SetBasePath(currentDir)
+    .AddJsonFile(Path.Combine(
+        parentDir.FullName,
+        "Configuration",
+        "appsettings.json"),
+        optional: false,
+        reloadOnChange: true)
+    .AddJsonFile(Path.Combine(
+        parentDir.FullName, 
+        "Configuration", 
+        "secrets.json"), 
+        optional: false, 
+        reloadOnChange: true)
     .Build();
 
+// Validate appSettings.json
 var appSettings = config.GetSection("AppSettings").Get<AppSettingsConfiguration>();
-if (appSettings == null)
-{
-    throw new ArgumentNullException();
-}
+appSettings.ThrowIfNull();
+appSettings!.Url.ThrowIfNullOrEmpty();
+appSettings!.Port.ThrowIfNullOrEmpty();
 
 System.Console.WriteLine(appSettings.ApplicationName);
 System.Console.WriteLine(appSettings.Version);
 
 // secrets.json
 var secrets = config.GetSection("Secrets").Get<SecretsConfiguration>();
-if (secrets == null)
-{
-    throw new ArgumentNullException();
-}
+secrets.ThrowIfNull();
 
 // Policies
 static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy() =>
@@ -92,14 +85,15 @@ builder.Logging.AddFilter("System.Net.Http.HttpClient", LogLevel.Information);
 builder.Logging.AddFilter("Polly", LogLevel.Debug);
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
+builder.WebHost.UseUrls($"{appSettings.Url}:{appSettings.Port}");
 
 var app = builder.Build();
 ChatEndpoints.Map(app);
-
 
 app.UseRouting();
 //app.UseAuthentication();
 //app.MapControllers();
 
-System.Console.WriteLine("Application ready ...");
+System.Console.WriteLine($"running {appSettings.Url}:{appSettings.Port}");
+System.Console.WriteLine("Application ready!");
 app.Run();

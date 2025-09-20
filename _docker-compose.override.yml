@@ -1,0 +1,14 @@
+version: '3.9'
+services:
+  api:
+    volumes:
+      - ./Configuration:/Configuration:ro
+      - ./API:/src/API
+      - ${HOME}/vsdbg:/remote_debugger:rw
+    environment:
+      - DOTNET_USE_POLLING_FILE_WATCHER=1
+      - DOTNET_RUNNING_IN_CONTAINER=true
+      - DOTNET_HOST_PATH=/usr/share/dotnet/dotnet
+    ports:
+      - "5000:8080"  # localhost:5000 → container:8080
+      - "5001:8081"
