@@ -11,16 +11,16 @@ public class CreateChatCompletionCommandHandler(IChatService chatService) : ICom
         // boundary validation
 
         if (request is null)
-            return Result<IChatResponse>.Failure("null object", ErrorType.Validation);
+            return Result<IChatResponse>.Failure(message: "null object", errorType: ErrorType.Validation);
 
 
         // model validation
 
         if (request.Model == null)
-            return Result<IChatResponse>.Failure("Model is required", ErrorType.Validation);
+            return Result<IChatResponse>.Failure("Model is required", errorType: ErrorType.Validation);
 
         if (!request.Messages?.Any() ?? false)
-            return Result<IChatResponse>.Failure("Message is required", ErrorType.Validation);
+            return Result<IChatResponse>.Failure("Message is required", errorType: ErrorType.Validation);
 
         try
         {
@@ -28,8 +28,7 @@ public class CreateChatCompletionCommandHandler(IChatService chatService) : ICom
         }
         catch (Exception)
         {
-            // TODO log
-            return Result<IChatResponse>.Failure(ErrorType.NotFound);
+            return Result<IChatResponse>.Failure(ErrorType.Unknown);
         }
     }
 }

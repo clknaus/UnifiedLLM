@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 using System.Text.RegularExpressions;
 
 namespace Application.Services;
-public class AnonymizerService(IMemoryCache cache, IAsyncRepository<Anonymizer> anonymizerRepository, ILogger<AnonymizerService> logger) : IAnonymizerService
+public class AnonymizerService(IMemoryCache cache, IAsyncRepository<Anonymizer> anonymizerRepository) : IAnonymizerService
 {
     private readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(5); // TODO subscribe on changes from db-trigger or similar logic
 
@@ -18,9 +18,11 @@ public class AnonymizerService(IMemoryCache cache, IAsyncRepository<Anonymizer> 
         var lastMessage = request?.Messages?.Last();
         if (string.IsNullOrWhiteSpace(lastMessage?.Content))
         {
-            var warning = "no content provided";
-            logger.LogWarning(warning); // TODO inject applicatoin error handler/manager that creates Results, logs and Events
-            return Result<IChatRequest>.Failure(warning);
+            return Result<IChatRequest>.Failure(
+                message: "no content provided", 
+                errorType: ErrorType.Validation, 
+                logLevel: LogLevel.Information
+            );
         }
 
         var (lookup, regex) = await cache.GetOrCreateAsync<(Dictionary<string, string>, Regex)>("anonymizer-rules", async entry =>
@@ -49,6 +51,7 @@ public class AnonymizerService(IMemoryCache cache, IAsyncRepository<Anonymizer> 
 
     public async Task<Result<IChatResponse>> Deanonymize(IChatResponse response)
     {
+        // TODO
         return response.AsResultSuccess();
     }
 }

@@ -32,7 +32,7 @@ public static class Extension
     }
 
     public static Result<T> AsResultSuccess<T>(this T? obj) where T : class => Result<T>.Success(obj);
-    public static Result<T> AsResultFailed<T>(this T? obj, string? error = null, ErrorType errorType = default) where T : class => Result<T>.Failure(error, errorType);
+    public static Result<T> AsResultFailed<T>(this T? obj, string? message = null, ErrorType errorType = default) where T : class => Result<T>.Failure(message, errorType: errorType);
     public static Result<T> AsResultFailed<U, T>(this Result<U>? obj) where U : class => Result<T>.Failure<U>(obj!);
     public static Result<T> AsResultFailed<T>(this Result<T>? obj) where T : class => Result<T>.Failure(obj!);
 
