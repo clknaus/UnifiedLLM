@@ -19,6 +19,7 @@ public static class IoCDependencyInjector
     {
         // Application
         builder.Services.AddScoped<IChatService, ChatService>();
+        builder.Services.AddScoped<IAnonymizerService, AnonymizerService>();
         // Application Handler
         builder.Services.AddScoped<IQueryHandler<IModelsResponse>, GetAvailableModelsQueryHandler>();
         builder.Services.AddScoped<ICommandHandler<IChatRequest, IChatResponse>, CreateChatCompletionCommandHandler>();

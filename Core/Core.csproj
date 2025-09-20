@@ -4,11 +4,16 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <Folder Include="Services\" />
     <Folder Include="Supportive\Interfaces\Repository\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Domain\Events\AnonymizerErrorEvent.cs" />
   </ItemGroup>
 
   <ItemGroup>

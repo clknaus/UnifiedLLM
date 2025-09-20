@@ -1,4 +1,5 @@
-﻿using Core.General.Interfaces;
+﻿using Core.Domain.Entities;
+using Core.General.Interfaces;
 
 namespace Core.Supportive.Interfaces;
 

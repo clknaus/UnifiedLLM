@@ -21,6 +21,7 @@ public class Result<T> : IResult
     public static Result<T> Success(T value) => new(isSuccess: true, value: value, error: null, errorType: null);
     public static Result<T> Failure() => new(isSuccess: false, value: default, error: null, errorType: null);
     public static Result<T> Failure(string? error = null, ErrorType? errorType = null) => new(isSuccess: false, value: default, error: error, errorType: errorType);
+    public static Result<T> Failure<U>(Result<U> result) => new(isSuccess: false, value: default, error: result.ErrorMessage, errorType: result.ErrorType);
     public static Result<T> Failure(ErrorType? errorType = null) => new(isSuccess: false, value: default, error: null, errorType: errorType);
 }
 

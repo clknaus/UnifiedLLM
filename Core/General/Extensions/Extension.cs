@@ -30,10 +30,12 @@ public static class Extension
 
         return obj;
     }
-    public static void ThrowIfNullOrEmpty(this string value, [CallerArgumentExpression("value")] string? paramName = null)
+    public static string ThrowIfNullOrEmpty(this string value, [CallerArgumentExpression("value")] string? paramName = null)
     {
         if (string.IsNullOrEmpty(value))
             throw new ArgumentNullException(paramName);
+
+        return value;
     }
 
     public static Result<T> AsResultSuccess<T>(this T? obj) where T : class => Result<T>.Success(obj);

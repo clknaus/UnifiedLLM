@@ -1,4 +1,5 @@
-﻿using Application.Events;
+﻿using Abstractions;
+using Application.Events;
 using Application.Interfaces;
 using Core.Domain.Entities;
 using Core.Domain.Events;
@@ -9,7 +10,7 @@ using Core.Supportive.Interfaces;
 using Infrastructure.Interfaces.Providers.OpenRouter;
 
 namespace Application.Services;
-public class ChatService(IProviderClientService openRouterClientService, IAsyncRepository<Chat> chatAsyncRepository, IUnitOfWork unitOfWork, IDomainEventQueue domainEventQueue) : IChatService
+public class ChatService(IProviderClientService openRouterClientService, IAsyncRepository<Chat> chatAsyncRepository, IUnitOfWork unitOfWork, IDomainEventQueue domainEventQueue, IAnonymizerService anonymizerService) : IChatService
 {
     public async Task<Result<IChatResponse>> CreateChatCompletionAsync(IChatRequest request, CancellationToken cancellationToken = default)
     {
@@ -27,28 +28,36 @@ public class ChatService(IProviderClientService openRouterClientService, IAsyncR
         // use Functor as object to command a call (research cosine similarity behavior for getting the right function)
         // call Functor along with IOpenRouteClientService to determine function so that semantics are sure.
         // parameterize preferred model for every call in IOpenRouteClientService
+
+        var anonymizedRequestResult = await anonymizerService.Anonymize(request);
+        if (anonymizedRequestResult.IsFailure) // TODO see below
+            return anonymizedRequestResult.AsResultFailed<IChatRequest, IChatResponse>();
+        request = anonymizedRequestResult.Value!;
+
         var response = await openRouterClientService.CreateChatCompletionAsync(request, cancellationToken);
         if (response.IsFailure)
         {
-            domainEventQueue.Enqueue(new ErrorLogEvent(response.ErrorMessage));
-            await unitOfWork.CommitAsync();
+            // TODO add ErrorManager that does: capture events, logs, sends e-mail, does other stuff
+            domainEventQueue.Enqueue(new ErrorLogEvent(response.ErrorMessage)); // TODO abstract into CommitAsync
+            await unitOfWork.CommitAsync(); // TODO add Result object directly
             return response;
         }
 
-        var chat = new Chat()
+        response = await anonymizerService.Deanonymize(response.Value!);
+
+        var chatResult = new Chat()
         {
             ChatRequest = new ChatRequest(request),
             ChatResponse = new ChatResponse(response.Value!)
-        };
+        }.ValidateThenRaiseEvent();
 
-        var validatedChatResult = chat.ValidateThenRaiseEvent();
-        if (validatedChatResult.IsFailure)
+        if (chatResult.IsFailure)
         {
-            domainEventQueue.Enqueue(new ErrorLogEvent(validatedChatResult.ErrorMessage));
+            domainEventQueue.Enqueue(new ErrorLogEvent(chatResult.ErrorMessage));
         }
         else
         {
-            await chatAsyncRepository.AddAsync(validatedChatResult.Value!);
+            await chatAsyncRepository.AddAsync(chatResult.Value!);
         }
 
         await unitOfWork.CommitAsync();
