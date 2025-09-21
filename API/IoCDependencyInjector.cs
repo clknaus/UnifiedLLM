@@ -23,9 +23,10 @@ public static class IoCDependencyInjector
         // Application Handler
         builder.Services.AddScoped<IQueryHandler<IModelsResponse>, GetAvailableModelsQueryHandler>();
         builder.Services.AddScoped<ICommandHandler<IChatRequest, IChatResponse>, CreateChatCompletionCommandHandler>();
+        builder.Services.AddScoped<IHandlerManagerService, HandlerManagerService>();
         // Events
         builder.Services.AddScoped<IAsyncDomainEventHandler<ChatCompletedEvent>, ChatCompletedHandler>();
-        builder.Services.AddScoped<IAsyncDomainEventHandler<ErrorLogEvent>, ErrorLogEventHandler>();
+        builder.Services.AddScoped<IAsyncDomainEventHandler<LogEvent>, LogEventHandler>();
         // Infrastructure
         builder.Services.AddScoped(typeof(IAsyncRepository<>), typeof(EfRepository<>));
         builder.Services.AddScoped(typeof(IUnitOfWork), typeof(EfUnitOfWork));

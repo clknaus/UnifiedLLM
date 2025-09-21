@@ -1,5 +1,6 @@
 ﻿using Abstractions;
 using Application.Events;
+using Application.Handler;
 using Application.Interfaces;
 using Core.Domain.Entities;
 using Core.Domain.Events;
@@ -10,7 +11,7 @@ using Core.Supportive.Interfaces;
 using Infrastructure.Interfaces.Providers.OpenRouter;
 
 namespace Application.Services;
-public class ChatService(IProviderClientService openRouterClientService, IAsyncRepository<Chat> chatAsyncRepository, IUnitOfWork unitOfWork, IDomainEventQueue domainEventQueue, IAnonymizerService anonymizerService) : IChatService
+public class ChatService(IProviderClientService openRouterClientService, IAsyncRepository<Chat> chatAsyncRepository, IHandlerManagerService handlerManagerService, IAnonymizerService anonymizerService) : IChatService
 {
     public async Task<Result<IChatResponse>> CreateChatCompletionAsync(IChatRequest request, CancellationToken cancellationToken = default)
     {
@@ -30,58 +31,41 @@ public class ChatService(IProviderClientService openRouterClientService, IAsyncR
         // parameterize preferred model for every call in IOpenRouteClientService
 
         var anonymizedRequestResult = await anonymizerService.Anonymize(request);
-        if (anonymizedRequestResult.IsFailure) // TODO see below
+        if (handlerManagerService.DoCommitAsErrorEvent(anonymizedRequestResult)) // TODO see below
             return anonymizedRequestResult.AsResultFailed<IChatRequest, IChatResponse>();
-        request = anonymizedRequestResult.Value!;
 
-        var response = await openRouterClientService.CreateChatCompletionAsync(request, cancellationToken);
-        if (response.IsFailure)
-        {
-            // TODO add ErrorManager that does: capture events, logs, sends e-mail, does other stuff
-            domainEventQueue.Enqueue(new ErrorLogEvent(response.ErrorMessage)); // TODO abstract into CommitAsync
-            await unitOfWork.CommitAsync(); // TODO add Result object directly
+        request = anonymizedRequestResult.Value!;
+        var response = await openRouterClientService.TryCreateChatCompletionAsync(request, cancellationToken);
+        if (handlerManagerService.DoCommitAsErrorEvent(response))
             return response;
-        }
 
         response = await anonymizerService.Deanonymize(response.Value!);
+        if (handlerManagerService.DoCommitAsErrorEvent(response))
+            return response;
 
-        var chatResult = new Chat()
-        {
-            ChatRequest = new ChatRequest(request),
-            ChatResponse = new ChatResponse(response.Value!)
+        var chatResult = new Chat() 
+        { 
+            ChatRequest = new ChatRequest(request), 
+            ChatResponse = new ChatResponse(response.Value!) 
         }.ValidateThenRaiseEvent();
 
-        if (chatResult.IsFailure)
+        try
         {
-            domainEventQueue.Enqueue(new ErrorLogEvent(chatResult.ErrorMessage));
+            if (!handlerManagerService.DoCommitAsErrorEvent(chatResult))
+                await chatAsyncRepository.AddAsync(chatResult.Value!);
+
+            await handlerManagerService.CommitAsync();
         }
-        else
+        catch (Exception ex)
         {
-            await chatAsyncRepository.AddAsync(chatResult.Value!);
+            return Result<IChatResponse>.Failure(exception: ex);
         }
 
-        await unitOfWork.CommitAsync();
         return response;
-
-        //return new OpenWebUIChatResponse
-        //{
-        //    Choices = res.Choices?.Select(choice => new ChatChoice
-        //    {
-        //        Message = new ChatMessage
-        //        {
-        //            Role = choice.Message.Role,
-        //            Content = choice.Message.Content
-        //        },
-        //        FinishReason = choice.FinishReason
-        //    }).ToList() ?? [],
-        //    Id = res.Id,
-        //    Model = res.Model,
-        //    Created = res.Created
-        //};
     }
 
     public async Task<Result<IModelsResponse>> GetAvailableModelsAsync(CancellationToken cancellationToken = default)
     {
-        return await openRouterClientService.GetAvailableModelsAsync(cancellationToken);
+        return await openRouterClientService.TryGetAvailableModelsAsync(cancellationToken);
     }
 }

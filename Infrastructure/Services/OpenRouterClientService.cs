@@ -4,6 +4,7 @@ using Core.Domain.Interfaces;
 using Core.General.Models;
 using Infrastructure.Interfaces.Providers.OpenRouter;
 using Infrastructure.Models.OpenRouter;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -22,7 +23,7 @@ public class OpenRouterClientService : IProviderClientService
         _httpClient.BaseAddress = new Uri(_opts.BaseUrl);
     }
 
-    public async Task<Result<IChatResponse>> CreateChatCompletionAsync(IChatRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result<IChatResponse>> TryCreateChatCompletionAsync(IChatRequest request, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -88,13 +89,11 @@ public class OpenRouterClientService : IProviderClientService
                     }
                     catch (JsonException ex)
                     {
-                        // If deserialization fails, log the error and continue processing other chunks
                         Console.WriteLine($"Error deserializing data: {jsonData}. Exception: {ex.Message}");
                     }
 
                     if (chatResponse != null)
                     {
-                        // Yield each response chunk as it arrives
                         yield return chatResponse;
                     }
                 }
@@ -102,7 +101,7 @@ public class OpenRouterClientService : IProviderClientService
         }
     }
 
-    public async Task<Result<IModelsResponse>> GetAvailableModelsAsync(CancellationToken cancellationToken = default)
+    public async Task<Result<IModelsResponse>> TryGetAvailableModelsAsync(CancellationToken cancellationToken = default)
     {
         try
         {
@@ -116,10 +115,10 @@ public class OpenRouterClientService : IProviderClientService
 
             return res.AsResultSuccess<IModelsResponse>();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             _httpClient?.Dispose();
-            return Result<IModelsResponse>.Failure();
+            return Result<IModelsResponse>.Failure(exception: ex, logLevel: LogLevel.Error);
         }
     }
 
