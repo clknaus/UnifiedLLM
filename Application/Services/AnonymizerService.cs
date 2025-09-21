@@ -12,6 +12,7 @@ namespace Application.Services;
 public class AnonymizerService(IMemoryCache cache, IAsyncRepository<Anonymizer> anonymizerRepository) : IAnonymizerService
 {
     private readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(5); // TODO subscribe on changes from db-trigger or similar logic
+    private readonly string _validationInformation = "no content provided";
 
     public async Task<Result<IChatRequest>> Anonymize(IChatRequest request)
     {
@@ -19,13 +20,13 @@ public class AnonymizerService(IMemoryCache cache, IAsyncRepository<Anonymizer> 
         if (string.IsNullOrWhiteSpace(lastMessage?.Content))
         {
             return Result<IChatRequest>.Failure(
-                message: "no content provided", 
+                message: _validationInformation, 
                 errorType: ErrorType.Validation, 
                 logLevel: LogLevel.Information
             );
         }
 
-        var (lookup, regex) = await cache.GetOrCreateAsync<(Dictionary<string, string>, Regex)>("anonymizer-replace", async entry =>
+        var (lookup, regex) = await cache.GetOrCreateAsync<(Dictionary<string, string>, Regex)>($"{nameof(AnonymizerService)}-{nameof(Anonymize)}", async entry =>
         {
             entry.AbsoluteExpirationRelativeToNow = _cacheDuration;
 
@@ -54,12 +55,14 @@ public class AnonymizerService(IMemoryCache cache, IAsyncRepository<Anonymizer> 
         var lastMessage = response?.Choices?.Last();
         if (string.IsNullOrWhiteSpace(lastMessage?.Message?.Content))
         {
-            var warning = "no content provided";
-            logger.LogWarning(warning); // TODO inject applicatoin error handler/manager that creates Results, logs and Events
-            return Result<IChatResponse>.Failure(warning);
+            return Result<IChatResponse>.Failure(
+                message: _validationInformation,
+                errorType: ErrorType.Validation,
+                logLevel: LogLevel.Information
+            );
         }
 
-        var (lookup, regex) = await cache.GetOrCreateAsync<(Dictionary<string, string>, Regex)>("anonymizer-reconstruct", async entry =>
+        var (lookup, regex) = await cache.GetOrCreateAsync<(Dictionary<string, string>, Regex)>($"{nameof(AnonymizerService)}-{nameof(Deanonymize)}", async entry =>
         {
             entry.AbsoluteExpirationRelativeToNow = _cacheDuration;
 
