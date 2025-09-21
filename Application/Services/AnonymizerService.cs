@@ -23,12 +23,12 @@ public class AnonymizerService(IMemoryCache cache, IAsyncRepository<Anonymizer> 
             return Result<IChatRequest>.Failure(warning);
         }
 
-        var (lookup, regex) = await cache.GetOrCreateAsync<(Dictionary<string, string>, Regex)>("anonymizer-rules", async entry =>
+        var (lookup, regex) = await cache.GetOrCreateAsync<(Dictionary<string, string>, Regex)>("anonymizer-replace", async entry =>
         {
             entry.AbsoluteExpirationRelativeToNow = _cacheDuration;
 
             var dict = (await anonymizerRepository.ListAllAsync())
-                ?.ToDictionary(a => a.Original!, a => a.Replacement!, StringComparer.OrdinalIgnoreCase) 
+                ?.ToDictionary(k => k.Original!, v => v.Replacement!, StringComparer.OrdinalIgnoreCase) 
                 ?? [];
 
             string pattern = dict.Keys.Count > 0
@@ -49,6 +49,35 @@ public class AnonymizerService(IMemoryCache cache, IAsyncRepository<Anonymizer> 
 
     public async Task<Result<IChatResponse>> Deanonymize(IChatResponse response)
     {
+        var lastMessage = response?.Choices?.Last();
+        if (string.IsNullOrWhiteSpace(lastMessage?.Message?.Content))
+        {
+            var warning = "no content provided";
+            logger.LogWarning(warning); // TODO inject applicatoin error handler/manager that creates Results, logs and Events
+            return Result<IChatResponse>.Failure(warning);
+        }
+
+        var (lookup, regex) = await cache.GetOrCreateAsync<(Dictionary<string, string>, Regex)>("anonymizer-reconstruct", async entry =>
+        {
+            entry.AbsoluteExpirationRelativeToNow = _cacheDuration;
+
+            var dict = (await anonymizerRepository.ListAllAsync())
+                ?.ToDictionary(k => k.Replacement!, v => v.Original!, StringComparer.OrdinalIgnoreCase)
+                ?? [];
+
+            string pattern = dict.Keys.Count > 0
+                ? @"\b(" + string.Join("|", dict.Keys.Select(Regex.Escape)) + @")\b"
+                : @"\b(?!)\b";
+
+            return (dict, new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase));
+        });
+
+        lastMessage.Message.Content = regex.Replace(lastMessage.Message.Content, match =>
+            lookup.TryGetValue(match.Value, out var replacement)
+                ? replacement
+                : match.Value
+        );
+
         return response.AsResultSuccess();
     }
 }
