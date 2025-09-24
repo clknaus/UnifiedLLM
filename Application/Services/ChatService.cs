@@ -1,17 +1,14 @@
 ﻿using Abstractions;
-using Application.Events;
 using Application.Handler;
 using Application.Interfaces;
 using Core.Domain.Entities;
-using Core.Domain.Events;
 using Core.Domain.Interfaces;
-using Core.General.Interfaces;
 using Core.General.Models;
 using Core.Supportive.Interfaces;
 using Infrastructure.Interfaces.Providers.OpenRouter;
 
 namespace Application.Services;
-public class ChatService(IProviderClientService openRouterClientService, IAsyncRepository<Chat> chatAsyncRepository, IHandlerManagerService handlerManagerService, IAnonymizerService anonymizerService) : IChatService
+public class ChatService(IProviderClientService openRouterClientService, IAsyncRepository<Chat> chatAsyncRepository, IAppEventService appEventService, IAnonymizerService anonymizerService) : IChatService
 {
     public async Task<Result<IChatResponse>> CreateChatCompletionAsync(IChatRequest request, CancellationToken cancellationToken = default)
     {
@@ -31,37 +28,34 @@ public class ChatService(IProviderClientService openRouterClientService, IAsyncR
         // parameterize preferred model for every call in IOpenRouteClientService
 
         var anonymizedRequestResult = await anonymizerService.Anonymize(request);
-        if (handlerManagerService.DoCommitAsErrorEvent(anonymizedRequestResult)) // TODO see below
+        if (appEventService.HandleError(anonymizedRequestResult)) // TODO see below
             return anonymizedRequestResult.AsResultFailed<IChatRequest, IChatResponse>();
+
+        var chat = new Chat() { ChatRequest = new ChatRequest(request) };
 
         request = anonymizedRequestResult.Value!;
         var response = await openRouterClientService.TryCreateChatCompletionAsync(request, cancellationToken);
-        if (handlerManagerService.DoCommitAsErrorEvent(response))
+        if (appEventService.HandleError(response))
             return response;
 
         response = await anonymizerService.Deanonymize(response.Value!);
-        if (handlerManagerService.DoCommitAsErrorEvent(response))
+        if (appEventService.HandleError(response))
             return response;
-
-        var chatResult = new Chat() 
-        { 
-            ChatRequest = new ChatRequest(request), 
-            ChatResponse = new ChatResponse(response.Value!) 
-        }.ValidateThenRaiseEvent();
 
         try
         {
-            if (!handlerManagerService.DoCommitAsErrorEvent(chatResult))
-                await chatAsyncRepository.AddAsync(chatResult.Value!);
+            chat.ChatResponse = new ChatResponse(response?.Value!);
+            if (!appEventService.HandleError(chat.ValidateThenRaiseEvent()))
+                await chatAsyncRepository.AddAsync(chat);
 
-            await handlerManagerService.CommitAsync();
+            await appEventService.CommitAsync();
         }
         catch (Exception ex)
         {
-            return Result<IChatResponse>.Failure(exception: ex);
+            return appEventService.HandleException<IChatResponse>(ex);
         }
 
-        return response;
+        return response!;
     }
 
     public async Task<Result<IModelsResponse>> GetAvailableModelsAsync(CancellationToken cancellationToken = default)
