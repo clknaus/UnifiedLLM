@@ -23,8 +23,8 @@ public static class IoCDependencyInjector
         // Application Handler
         builder.Services.AddScoped<IQueryHandler<IModelsResponse>, GetAvailableModelsQueryHandler>();
         builder.Services.AddScoped<ICommandHandler<IChatRequest, IChatResponse>, CreateChatCompletionCommandHandler>();
-        builder.Services.AddScoped<IHandlerManagerService, HandlerManagerService>();
         // Events
+        builder.Services.AddScoped<IAppEventService, AppEventService>();
         builder.Services.AddScoped<IAsyncDomainEventHandler<ChatCompletedEvent>, ChatCompletedHandler>();
         builder.Services.AddScoped<IAsyncDomainEventHandler<LogEvent>, LogEventHandler>();
         // Infrastructure
@@ -36,6 +36,7 @@ public static class IoCDependencyInjector
         builder.Services.AddScoped<ITrackerService<Guid>, TrackerService<Guid>>();
         // Domain General
         builder.Services.AddScoped<IHashHandler, HashHandler>();
-
+        // Cache
+        builder.Services.AddMemoryCache();
     }
 }
