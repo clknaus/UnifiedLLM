@@ -5,7 +5,7 @@ namespace Core.Domain.Entities;
 public class Chat : AggregateRoot<Guid, Chat>
 {
     public ChatRequest? ChatRequest { get; init; }
-    public ChatResponse? ChatResponse { get; init; }
+    public ChatResponse? ChatResponse { get; set; }
 
     public bool HasChatRequest => ChatRequest?.Id != null;
     public bool HasChatResponse => ChatResponse?.Id != null;
