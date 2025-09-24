@@ -20,9 +20,12 @@ public class EfRepository<T> : IAsyncRepository<T> where T : class, IAggregateRo
         return await _dbSet.FindAsync(id);
     }
 
-    public async Task<IEnumerable<T>> ListAllAsync()
+    public async Task<List<T>> ListAllAsync(CancellationToken ct = default)
     {
-        return await _dbSet.ToListAsync() ?? [];
+        return await _dbSet
+            .AsNoTracking()
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
     }
 
     public async Task<T> AddAsync(T entity)
@@ -55,5 +58,6 @@ public class EfRepository<T> : IAsyncRepository<T> where T : class, IAggregateRo
         return await _dbSet.Skip((page - 1) * size).Take(size).ToListAsync();
     }
 
+    public async Task<int> SaveChangesAsync() => await _context.SaveChangesAsync();
 }
 

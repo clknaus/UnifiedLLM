@@ -6,9 +6,10 @@ namespace Core.Supportive.Interfaces;
 public interface IAsyncRepository<T> where T : class, IAggregateRootGeneric<T>
 {
     Task<T?> GetByIdAsync(Guid id);
-    Task<IEnumerable<T>> ListAllAsync();
+    Task<List<T>> ListAllAsync(CancellationToken ct = default);
     Task<T> AddAsync(T entity);
     Task UpdateAsync(T entity);
     Task DeleteAsync(T entity);
     Task<IEnumerable<T>> GetPagedResponseAsync(int page, int size);
+    Task<int> SaveChangesAsync();
 }
