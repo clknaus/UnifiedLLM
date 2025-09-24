@@ -1,0 +1,14 @@
+[
+  {
+    "Original": "John Doe",
+    "Replacement": "User123"
+  },
+  {
+    "Original": "123-45-6789",
+    "Replacement": "XXX-XX-XXXX"
+  },
+  {
+    "Original": "Sensitive Email",
+    "Replacement": "anonymized@example.com"
+  }
+]

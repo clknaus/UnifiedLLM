@@ -1,6 +1,8 @@
 ﻿using API;
 using API.Endpoints;
+using Core.Domain.Entities;
 using Core.General.Extensions;
+using Core.Supportive.Interfaces;
 using Infrastructure.Interfaces.Providers.OpenRouter;
 using Infrastructure.Models.OpenRouter;
 using Infrastructure.Persistence;
@@ -9,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Extensions.Http;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -75,8 +78,9 @@ builder.Services
     .AddPolicyHandler(GetRetryPolicy())
     .AddPolicyHandler(GetCircuitBreakerPolicy()); // Assuming GetCircuitBreakerPolicy() is defined elsewhere
 
+var dbName = $"SharedInMemoryDb-{Guid.NewGuid()}"; // Fixed name ensures sharing across scopes/instances
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
+    options.UseInMemoryDatabase(dbName));
 
 IoCDependencyInjector.Map(builder);
 
@@ -94,6 +98,46 @@ app.UseRouting();
 //app.UseAuthentication();
 //app.MapControllers();
 
+// TODO remove
+// Seed the repository on startup (async, so use a hosted service or run it here if console app)
+using (var scope = app.Services.CreateScope())
+{
+    var anonymizerRepository = scope.ServiceProvider.GetRequiredService<IAsyncRepository<Anonymizer>>();
+
+    // Check if data already exists to avoid duplicates
+    var jsonFilePath = "..\\Configuration\\anonymizer.json";
+    if (!File.Exists(jsonFilePath))
+    {
+        throw new FileNotFoundException($"JSON file not found: {jsonFilePath}");
+    }
+
+    var jsonContent = await File.ReadAllTextAsync(jsonFilePath);
+    var anonymizers = JsonSerializer.Deserialize<List<Anonymizer>>(jsonContent, new JsonSerializerOptions
+    {
+        PropertyNameCaseInsensitive = true // Handles case variations in JSON
+    });
+
+    if (anonymizers == null || !anonymizers.Any())
+    {
+        throw new ArgumentNullException();
+    }
+
+    // Option 1: Sequential adds (simple, reliable)
+    foreach (var a in anonymizers)
+    {
+        if (string.IsNullOrWhiteSpace(a.Original) || string.IsNullOrWhiteSpace(a.Replacement))
+        {
+            continue;
+        }
+
+        var anonymizerEntity = new Anonymizer() { Original = a.Original, Replacement = a.Replacement };
+        anonymizerEntity.ValidateThenRaiseEvent();
+        await anonymizerRepository.AddAsync(new Anonymizer() { Original = a.Original, Replacement = a.Replacement });
+    }
+    await anonymizerRepository.SaveChangesAsync();
+}
+
 System.Console.WriteLine($"running {appSettings.Url}:{appSettings.Port}");
 System.Console.WriteLine("Application ready!");
 app.Run();
+
