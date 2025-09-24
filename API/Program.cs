@@ -85,7 +85,7 @@ builder.Logging.AddFilter("System.Net.Http.HttpClient", LogLevel.Information);
 builder.Logging.AddFilter("Polly", LogLevel.Debug);
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
-builder.WebHost.UseUrls($"{appSettings.Url}:{appSettings.Port}");
+//builder.WebHost.UseUrls($"{appSettings.Url}:{appSettings.Port}");
 
 var app = builder.Build();
 ChatEndpoints.Map(app);
