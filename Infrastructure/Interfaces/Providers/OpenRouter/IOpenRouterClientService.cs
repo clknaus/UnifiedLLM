@@ -8,6 +8,7 @@ public interface IProviderClientService
 {
     Task<Result<IChatResponse>> TryCreateChatCompletionAsync(IChatRequest request, CancellationToken cancellationToken = default);
     Task<Result<IModelsResponse>> TryGetAvailableModelsAsync(CancellationToken cancellationToken = default);
-    IAsyncEnumerable<OpenRouterChatStreamResponse?> GetChatCompletionStreamAsync(IChatRequest request, [EnumeratorCancellation] CancellationToken cancellationToken = default);
+    IAsyncEnumerable<OpenRouterChatStreamResponse?> GetChatCompletionStreamAsync(IChatRequest request, CancellationToken cancellationToken = default);
     //IAsyncEnumerable<string> StreamChatCompletionAsync(ChatRequest request, CancellationToken cancellationToken = default);
+    IAsyncEnumerable<Result<IChatResponse>> TryStreamChatCompletionAsync(IChatRequest request, CancellationToken cancellationToken = default);
 }

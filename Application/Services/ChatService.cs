@@ -1,4 +1,5 @@
 ﻿using Abstractions;
+using Abstractions.Extension;
 using Application.Handler;
 using Application.Interfaces;
 using Core.Domain.Entities;
@@ -13,19 +14,6 @@ public class ChatService(IProviderClientService openRouterClientService, IAsyncR
     public async Task<Result<IChatResponse>> CreateChatCompletionAsync(IChatRequest request, CancellationToken cancellationToken = default)
     {
         request.Stream = false; // TODO enable streaming
-
-        // create or get chat entity along with a guid
-
-
-        // keep track of the saved entity by guid
-        // get or hash text to keep track of chat entity
-        // may use cosinus properties to check on text similarity for tracking
-
-        // use factory to create Anonymizer (inside Chat entity?)
-        // use Search along with ISearchService call
-        // use Functor as object to command a call (research cosine similarity behavior for getting the right function)
-        // call Functor along with IOpenRouteClientService to determine function so that semantics are sure.
-        // parameterize preferred model for every call in IOpenRouteClientService
 
         var anonymizedRequestResult = await anonymizerService.Anonymize(request);
         if (appEventService.HandleError(anonymizedRequestResult)) // TODO see below

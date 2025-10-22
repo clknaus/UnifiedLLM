@@ -1,4 +1,4 @@
-﻿using Abstractions;
+﻿using Abstractions.Extension;
 using Application.Interfaces;
 using Core.Domain.Entities;
 using Core.Domain.Interfaces;

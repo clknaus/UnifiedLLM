@@ -43,5 +43,7 @@ public static class Extension
     {
         return Result<U>.Failure(result?.ErrorMessage ?? "Error");
     }
+    public static Result<T> AsResultFailed<U, T>(this Result<U>? obj) where U : class => Result<T>.Failure<U>(obj!);
+
 
 }

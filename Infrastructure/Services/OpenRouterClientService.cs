@@ -1,6 +1,7 @@
 ﻿using Abstractions;
 using Application.Models;
 using Core.Domain.Interfaces;
+using Core.General.Extensions;
 using Core.General.Models;
 using Infrastructure.Interfaces.Providers.OpenRouter;
 using Infrastructure.Models.OpenRouter;
@@ -22,6 +23,83 @@ public class OpenRouterClientService : IProviderClientService
         _opts = opts.Value;
         _httpClient.BaseAddress = new Uri(_opts.BaseUrl);
     }
+
+    public async IAsyncEnumerable<Result<IChatResponse>> TryStreamChatCompletionAsync(
+        IChatRequest request,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        request.Stream = true;
+        HttpResponseMessage response;
+        Result<IChatResponse>? result = null;
+
+        try
+        {
+            string json = JsonSerializer.Serialize(request, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            using var content = new StringContent(json, Encoding.UTF8, "application/json");
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, "v1/chat/completions")
+            {
+                Content = content
+            };
+
+            response = await _httpClient.SendAsync(
+                httpRequest,
+                HttpCompletionOption.ResponseHeadersRead,
+                cancellationToken);
+
+            response.EnsureSuccessStatusCode();
+        }
+        catch (Exception ex)
+        {
+            result = Result<IChatResponse>.Failure(ex.Message);
+            yield break;
+        }
+
+        if (result?.IsSuccess != true)
+        {
+            yield return result!;
+        }
+
+        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+        using var reader = new StreamReader(stream);
+        var jsonSerializerOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+
+        while (!reader.EndOfStream && !cancellationToken.IsCancellationRequested)
+        {
+            var line = await reader.ReadLineAsync(cancellationToken);
+            if (line == null)
+                continue;
+
+            if (line.StartsWith("data: ", StringComparison.OrdinalIgnoreCase))
+            {
+                var data = line["data: ".Length..];
+                if (data.Equals("[DONE]", StringComparison.OrdinalIgnoreCase))
+                    yield break;
+
+                Result<IChatResponse>? chunkResult;
+                try
+                {
+                    var chunk = JsonSerializer.Deserialize<OpenRouterChatResponse>(
+                        data,
+                        jsonSerializerOptions);
+
+                    chunkResult = chunk != null
+                        ? chunk.AsResultSuccess<IChatResponse>()
+                        : Result<IChatResponse>.Failure("Empty chunk.");
+                }
+                catch (JsonException)
+                {
+                    chunkResult = Result<IChatResponse>.Failure("Malformed response chunk from provider.");
+                }
+
+                yield return chunkResult;
+            }
+        }
+    }
+
 
     public async Task<Result<IChatResponse>> TryCreateChatCompletionAsync(IChatRequest request, CancellationToken cancellationToken = default)
     {

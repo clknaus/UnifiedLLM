@@ -9,7 +9,7 @@ public class ChatResponse : Entity<Guid>, IChatResponse
     public string Object { get; set; }
     public long Created { get; set; }
     public string Model { get; set; }
-    public IEnumerable<ChatChoice> Choices { get; set; }
+    public IReadOnlyList<ChatChoice> Choices { get; set; }
     public string? SystemFingerprint { get; set; }
 
     public ChatResponse()

@@ -1,9 +1,8 @@
-﻿using Core.General.Interfaces;
-using Core.General.Models;
+﻿using Core.General.Models;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 
-namespace Abstractions;
+namespace Abstractions.Extension;
 public static class Extension
 {
     public static async Task<T> TryDeserializeJsonAsync<T>(this Stream stream, CancellationToken cancellationToken = default)

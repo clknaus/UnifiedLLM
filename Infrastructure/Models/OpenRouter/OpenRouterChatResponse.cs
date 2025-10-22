@@ -9,7 +9,7 @@ public class OpenRouterChatResponse : IChatResponse, IChatTracker
     public string Object { get; set; }
     public long Created { get; set; }
     public string Model { get; set; }
-    public IEnumerable<ChatChoice> Choices { get; set; }
+    public IReadOnlyList<ChatChoice> Choices { get; set; }
     //public IUsage Usage { get; set; }
     //public IEnumerable<IToolCall> ToolCalls { get; set; }
     public string SessionId { get; set; }
