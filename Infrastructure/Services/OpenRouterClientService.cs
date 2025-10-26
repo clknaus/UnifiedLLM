@@ -4,6 +4,7 @@ using Core.General.Extensions;
 using Core.General.Models;
 using Infrastructure.Interfaces.Providers.OpenRouter;
 using Infrastructure.Models.OpenRouter;
+using Infrastructure.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Runtime.CompilerServices;
@@ -17,7 +18,7 @@ public class OpenRouterClientService : IProviderClientService
     private readonly HttpClient _httpClient;
     private readonly OpenRouterConfiguration _opts;
 
-    public OpenRouterClientService(HttpClient httpClient, IOptions<OpenRouterConfiguration> opts)
+public OpenRouterClientService(HttpClient httpClient, IOptions<OpenRouterConfiguration> opts)
     {
         _httpClient = httpClient;
         _opts = opts.Value;
@@ -34,11 +35,7 @@ public class OpenRouterClientService : IProviderClientService
 
         try
         {
-            string json = JsonSerializer.Serialize(request, new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            });
-
+            string json = JsonSerializer.Serialize(request, JsonDefaults.CachedJsonOptions_PropertyNameCaseInsensitive);
             using var content = new StringContent(json, Encoding.UTF8, "application/json");
             using var httpRequest = new HttpRequestMessage(HttpMethod.Post, "v1/chat/completions")
             {
@@ -84,7 +81,7 @@ public class OpenRouterClientService : IProviderClientService
                 Result<IChatResponse>? chunkResult;
                 try
                 {
-                    var chunk = JsonSerializer.Deserialize<OpenRouterChatResponse>(data, jsonSerializerOptions);
+                    var chunk = JsonSerializer.Deserialize<OpenRouterChatResponse>(data, JsonDefaults.CachedJsonOptions_PropertyNamingPolicyCamelCase_DefaultIgnoreConditionWhenWritingNull);
 
                     chunkResult = chunk != null
                         ? chunk.AsResultSuccess<IChatResponse>()
@@ -104,21 +101,20 @@ public class OpenRouterClientService : IProviderClientService
         }
     }
 
-
     public async Task<Result<IChatResponse>> TryCreateChatCompletionAsync(IChatRequest request, CancellationToken cancellationToken = default)
     {
         try
         {
-            string json = JsonSerializer.Serialize(request, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
+            string json = JsonSerializer.Serialize(request, JsonDefaults.CachedJsonOptions_PropertyNamingPolicyCamelCase);
+            using var content = new StringContent(json, Encoding.UTF8, "application/json");
             using var response = await _httpClient.PostAsync("v1/chat/completions", content, cancellationToken);
             response.EnsureSuccessStatusCode();
+
             _httpClient?.Dispose();
 
             var res = await JsonSerializer.DeserializeAsync<OpenRouterChatResponse>(
                        await response.Content.ReadAsStreamAsync(cancellationToken),
-                       new JsonSerializerOptions { PropertyNameCaseInsensitive = true },
+                       JsonDefaults.CachedJsonOptions_PropertyNameCaseInsensitive,
                        cancellationToken
                    );
 
@@ -131,66 +127,14 @@ public class OpenRouterClientService : IProviderClientService
         }
     }
 
-    public async IAsyncEnumerable<OpenRouterChatStreamResponse?> GetChatCompletionStreamAsync(IChatRequest request, [EnumeratorCancellation] CancellationToken cancellationToken = default)
-    {
-        string json = JsonSerializer.Serialize(request, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-        using var response = await _httpClient.PostAsync("v1/chat/completions", content, cancellationToken);
-        response.EnsureSuccessStatusCode();
-
-        var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-        using var reader = new StreamReader(stream, Encoding.UTF8);
-
-        string? line;
-        while ((line = await reader.ReadLineAsync()) != null)
-        {
-            // Skip empty lines or event delimiters
-            if (string.IsNullOrWhiteSpace(line))
-                continue;
-
-            // Look for 'data:' prefix in SSE format
-            if (line.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
-            {
-                string jsonData = line.Substring(5).Trim();  // Extract JSON after "data:"
-
-                // Special case: Check for the "[DONE]" marker which indicates end of stream or no more data
-                if (jsonData.Equals("[DONE]", StringComparison.OrdinalIgnoreCase))
-                {
-                    // Optionally handle the end of the stream here, maybe notify the caller.
-                    yield break;  // End the stream
-                }
-
-                if (!string.IsNullOrEmpty(jsonData))
-                {
-                    OpenRouterChatStreamResponse chatResponse = null;
-                    try
-                    {
-                        // Attempt to deserialize the JSON data chunk
-                        chatResponse = JsonSerializer.Deserialize<OpenRouterChatStreamResponse>(jsonData);
-                    }
-                    catch (JsonException ex)
-                    {
-                        Console.WriteLine($"Error deserializing data: {jsonData}. Exception: {ex.Message}");
-                    }
-
-                    if (chatResponse != null)
-                    {
-                        yield return chatResponse;
-                    }
-                }
-            }
-        }
-    }
-
     public async Task<Result<IModelsResponse>> TryGetAvailableModelsAsync(CancellationToken cancellationToken = default)
     {
         try
         {
             var response = await _httpClient.GetAsync("v1/models", cancellationToken);
             var res = await JsonSerializer.DeserializeAsync<OpenRouterModelsResponse>(
-                await response.Content.ReadAsStreamAsync(),
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true },
+                await response.Content.ReadAsStreamAsync(cancellationToken),
+                JsonDefaults.CachedJsonOptions_PropertyNameCaseInsensitive,
                 cancellationToken
             );
             _httpClient.Dispose();
@@ -203,138 +147,5 @@ public class OpenRouterClientService : IProviderClientService
             return Result<IModelsResponse>.Failure(exception: ex, logLevel: LogLevel.Error);
         }
     }
-
-    //public IAsyncEnumerable<string> StreamChatCompletionAsync(ChatRequest request, CancellationToken cancellationToken = default)
-    //{
-    //    return StreamChatCompletionsInternalAsync(request, cancellationToken);
-    //}
-
-    //private async IAsyncEnumerable<string> StreamChatCompletionsInternalAsync(ChatRequest request, [EnumeratorCancellation] CancellationToken cancellationToken)
-    //{
-    //    var streamReq = new ChatRequest
-    //    {
-    //        //Provider = request.Provider,
-    //        //Model = request.Model,
-    //        //Messages = request.Messages,
-    //        //Temperature = request.Temperature,
-    //        //MaxTokens = request.MaxTokens
-    //    };
-
-    //    string json;
-    //    try
-    //    {
-    //        json = JsonSerializer.Serialize(streamReq);
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        throw new InvalidOperationException("Failed to serialize the chat request.", ex);
-    //    }
-
-    //    using var httpReq = new HttpRequestMessage(HttpMethod.Post, "/v1/chat/completions")
-    //    {
-    //        Content = new StringContent(json, Encoding.UTF8, "application/json")
-    //    };
-    //    httpReq.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("text/event-stream"));
-
-    //    HttpResponseMessage response;
-    //    try
-    //    {
-    //        response = await _httpClient.SendAsync(httpReq, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-    //        response.EnsureSuccessStatusCode();
-    //    }
-    //    catch (HttpRequestException ex)
-    //    {
-    //        throw new InvalidOperationException("HTTP request failed.", ex);
-    //    }
-
-    //    await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-    //    using var reader = new StreamReader(stream);
-
-    //    int malformedCount = 0;
-    //    const int malformedThreshold = 5;
-
-    //    while (!reader.EndOfStream && !cancellationToken.IsCancellationRequested)
-    //    {
-    //        string? line;
-
-    //        try
-    //        {
-    //            line = await reader.ReadLineAsync();
-    //        }
-    //        catch (Exception ex)
-    //        {
-    //            throw new InvalidOperationException("Failed while reading streamed content.", ex);
-    //        }
-
-    //        if (string.IsNullOrWhiteSpace(line) || !line.StartsWith("data: "))
-    //            continue;
-
-    //        var jsonData = line.Substring("data: ".Length).Trim();
-
-    //        if (jsonData == "[DONE]")
-    //            yield break;
-
-    //        bool isMalformed = false;
-    //        ChatResponse? partial = null;
-
-    //        try
-    //        {
-    //            partial = JsonSerializer.Deserialize<ChatResponse>(jsonData);
-    //        }
-    //        catch (JsonException ex)
-    //        {
-    //            Console.Error.WriteLine($"Malformed JSON skipped: {jsonData}\n{ex}");
-    //            malformedCount++;
-    //            isMalformed = true;
-    //        }
-
-    //        if (isMalformed)
-    //        {
-    //            if (malformedCount >= malformedThreshold)
-    //            {
-    //                Console.Error.WriteLine($"Too many malformed chunks ({malformedCount}). Stopping stream.");
-    //                yield break;
-    //            }
-
-    //            yield return "<!-- invalid chunk -->";
-    //            continue;
-    //        }
-    //        else
-    //        {
-    //            malformedCount = 0;
-    //        }
-
-    //        if (partial?.Choices != null)
-    //        {
-    //            foreach (var c in partial.Choices)
-    //            {
-    //                if (c.Delta?.Content != null)
-    //                    yield return c.Delta.Content;
-    //            }
-    //        }
-    //    }
-    //}
-
-
-    //public Task<ChatResponse> CreateChatCompletionWithJsonModeAsync(ChatRequest request, CancellationToken cancellationToken = default)
-    //{
-    //    throw new NotImplementedException();
-    //}
-
-    //public Task<ChatResponse> CreateChatCompletionWithToolsAsync(ChatRequest request, IEnumerable<ToolDefinition> tools, ToolChoice toolChoice = null, CancellationToken cancellationToken = default)
-    //{
-    //    throw new NotImplementedException();
-    //}
-
-    //public Task<ChatResponse> CreateChatCompletionWithUserAsync(ChatRequest request, string userId, CancellationToken cancellationToken = default)
-    //{
-    //    throw new NotImplementedException();
-    //}
-
-
-    //public Task<ModelDetails> GetModelDetailsAsync(string modelId, CancellationToken cancellationToken = default)
-    //{
-    //    throw new NotImplementedException();
-    //}
 }
 

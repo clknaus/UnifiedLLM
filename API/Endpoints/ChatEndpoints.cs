@@ -2,6 +2,7 @@
 using Application.Models;
 using Core.Domain.Interfaces;
 using Infrastructure.Extensions;
+using Infrastructure.Serialization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -33,12 +34,6 @@ public static class ChatEndpoints
             response.Headers.CacheControl = "no-cache";
             response.Headers.Connection = "keep-alive";
 
-            var jsonSerializerOptions = new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-            };
-
             try
             {
                 await foreach (var chunkResult in handler.HandleStreamAsync(request, cancellationToken))
@@ -46,22 +41,38 @@ public static class ChatEndpoints
 
                     if (chunkResult.IsFailure)
                     {
-                        await response.WriteAsync($"data: {JsonSerializer.Serialize(new { error = chunkResult.ErrorMessage }, jsonSerializerOptions)}\n\n", cancellationToken);
+                        await response.WriteAsync($"data: {JsonSerializer.Serialize(new { error = chunkResult.ErrorMessage }, 
+                            JsonDefaults.CachedJsonOptions_PropertyNamingPolicyCamelCase_DefaultIgnoreConditionWhenWritingNull)}\n\n", 
+                            cancellationToken);
+
                         await response.Body.FlushAsync(cancellationToken);
                         break;
                     }
 
-                    await response.WriteAsync($"data: {JsonSerializer.Serialize(chunkResult.Value, jsonSerializerOptions)}\n\n", cancellationToken);
+                    await response.WriteAsync($"data: {JsonSerializer.Serialize(chunkResult.Value,
+                        JsonDefaults.CachedJsonOptions_PropertyNamingPolicyCamelCase_DefaultIgnoreConditionWhenWritingNull)}\n\n", 
+                        cancellationToken);
+
                     await response.Body.FlushAsync(cancellationToken);
                 }
             }
             catch (Exception ex)
             {
-                await response.WriteAsync($"data: {JsonSerializer.Serialize(new { error = "The Message was terminated due to an Error." }, jsonSerializerOptions)}\n\n", cancellationToken);
-                await response.Body.FlushAsync(cancellationToken);
-                // TODO log
+                await response.WriteAsync($"data: {JsonSerializer.Serialize(new { error = "An error has occured. Stream was stopped."},
+                    JsonDefaults.CachedJsonOptions_PropertyNamingPolicyCamelCase_DefaultIgnoreConditionWhenWritingNull)}\n\n",
+                    cancellationToken);
+                // TODO log Exception
             }
         });
+    }
 
+    private static async Task WriteEventChunkAsync<T>(
+        HttpResponse response,
+        T value,
+        JsonSerializerOptions jsonOptions,
+        CancellationToken cancellationToken)
+    {
+        await response.WriteAsync($"data: {JsonSerializer.Serialize(value, jsonOptions)}\n\n", cancellationToken);
+        await response.Body.FlushAsync(cancellationToken);
     }
 }
