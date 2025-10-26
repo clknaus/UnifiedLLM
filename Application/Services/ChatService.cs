@@ -8,6 +8,7 @@ using Core.General.Models;
 using Core.Supportive.Interfaces;
 using Infrastructure.Interfaces.Providers.OpenRouter;
 using Microsoft.AspNetCore.Http;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 
@@ -49,7 +50,7 @@ public class ChatService(IProviderClientService openRouterClientService, IAsyncR
         return response!;
     }
 
-    public async IAsyncEnumerable<Result<IChatResponse>> CreateChatCompletionStreamAsync(IChatRequest request, CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<Result<IChatResponse>> CreateChatCompletionStreamAsync(IChatRequest request, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var anonymizedRequestResult = await anonymizerService.Anonymize(request);
         if (appEventService.HandleError(anonymizedRequestResult))
