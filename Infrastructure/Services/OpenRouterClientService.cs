@@ -35,7 +35,7 @@ public OpenRouterClientService(HttpClient httpClient, IOptions<OpenRouterConfigu
 
         try
         {
-            string json = JsonSerializer.Serialize(request, JsonDefaults.CachedJsonOptions_PropertyNameCaseInsensitive);
+            string json = JsonSerializer.Serialize(request, JsonDefaults.CachedJsonOptions_PropertyNamingPolicyCamelCase);
             using var content = new StringContent(json, Encoding.UTF8, "application/json");
             using var httpRequest = new HttpRequestMessage(HttpMethod.Post, "v1/chat/completions")
             {
