@@ -1,5 +1,4 @@
-﻿using Abstractions;
-using Application.Models;
+﻿using Application.Models;
 using Core.Domain.Interfaces;
 using Core.General.Extensions;
 using Core.General.Models;
@@ -10,6 +9,7 @@ using Microsoft.Extensions.Options;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Infrastructure.Services;
 public class OpenRouterClientService : IProviderClientService
@@ -29,7 +29,7 @@ public class OpenRouterClientService : IProviderClientService
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         request.Stream = true;
-        HttpResponseMessage response;
+        HttpResponseMessage? response = null;
         Result<IChatResponse>? result = null;
 
         try
@@ -50,30 +50,32 @@ public class OpenRouterClientService : IProviderClientService
                 HttpCompletionOption.ResponseHeadersRead,
                 cancellationToken);
 
-            response.EnsureSuccessStatusCode();
+            response?.EnsureSuccessStatusCode();
         }
         catch (Exception ex)
         {
             result = Result<IChatResponse>.Failure(ex.Message);
+        }
+
+        if (result?.IsFailure == true)
+        {
+            yield return result;
             yield break;
         }
 
-        if (result?.IsSuccess != true)
-        {
-            yield return result!;
-        }
-
-        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+        await using var stream = await response!.Content.ReadAsStreamAsync(cancellationToken);
         using var reader = new StreamReader(stream);
-        var jsonSerializerOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+        var jsonSerializerOptions = new JsonSerializerOptions 
+        { 
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        };
 
         while (!reader.EndOfStream && !cancellationToken.IsCancellationRequested)
         {
             var line = await reader.ReadLineAsync(cancellationToken);
-            if (line == null)
-                continue;
 
-            if (line.StartsWith("data: ", StringComparison.OrdinalIgnoreCase))
+            if (!string.IsNullOrEmpty(line) && line.StartsWith("data: ", StringComparison.OrdinalIgnoreCase))
             {
                 var data = line["data: ".Length..];
                 if (data.Equals("[DONE]", StringComparison.OrdinalIgnoreCase))
@@ -82,9 +84,7 @@ public class OpenRouterClientService : IProviderClientService
                 Result<IChatResponse>? chunkResult;
                 try
                 {
-                    var chunk = JsonSerializer.Deserialize<OpenRouterChatResponse>(
-                        data,
-                        jsonSerializerOptions);
+                    var chunk = JsonSerializer.Deserialize<OpenRouterChatResponse>(data, jsonSerializerOptions);
 
                     chunkResult = chunk != null
                         ? chunk.AsResultSuccess<IChatResponse>()
@@ -96,6 +96,10 @@ public class OpenRouterClientService : IProviderClientService
                 }
 
                 yield return chunkResult;
+            }
+            else
+            {
+                continue;
             }
         }
     }

@@ -99,7 +99,7 @@ app.UseRouting();
 //app.MapControllers();
 
 // TODO remove
-// Seed the repository on startup (async, so use a hosted service or run it here if console app)
+// Seed the repository on startup (async, so use a hosted service or run it here...)
 using (var scope = app.Services.CreateScope())
 {
     var anonymizerRepository = scope.ServiceProvider.GetRequiredService<IAsyncRepository<Anonymizer>>();
@@ -112,28 +112,25 @@ using (var scope = app.Services.CreateScope())
     }
 
     var jsonContent = await File.ReadAllTextAsync(jsonFilePath);
-    var anonymizers = JsonSerializer.Deserialize<List<Anonymizer>>(jsonContent, new JsonSerializerOptions
-    {
-        PropertyNameCaseInsensitive = true // Handles case variations in JSON
-    });
+    var anonymizers = JsonSerializer.Deserialize<List<Anonymizer>>(jsonContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-    if (anonymizers == null || !anonymizers.Any())
+    if (anonymizers == null || anonymizers.Count == 0)
     {
         throw new ArgumentNullException();
     }
 
-    // Option 1: Sequential adds (simple, reliable)
+    Anonymizer anonymizerEntity;
     foreach (var a in anonymizers)
     {
-        if (string.IsNullOrWhiteSpace(a.Original) || string.IsNullOrWhiteSpace(a.Replacement))
+        anonymizerEntity = new Anonymizer() { Original = a.Original, Replacement = a.Replacement };
+        if (anonymizerEntity.ValidateThenRaiseEvent().IsFailure)
         {
             continue;
         }
 
-        var anonymizerEntity = new Anonymizer() { Original = a.Original, Replacement = a.Replacement };
-        anonymizerEntity.ValidateThenRaiseEvent();
         await anonymizerRepository.AddAsync(new Anonymizer() { Original = a.Original, Replacement = a.Replacement });
     }
+
     await anonymizerRepository.SaveChangesAsync();
 }
 

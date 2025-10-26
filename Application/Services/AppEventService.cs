@@ -21,6 +21,19 @@ public class AppEventService(IUnitOfWork unitOfWork, IDomainEventQueue domainEve
         return true;
     }
 
+    public async Task<bool> HandleError<T>(IAsyncEnumerable<Result<T>> result, ErrorType errorType = default)
+    {
+        var enumerator = result.GetAsyncEnumerator();
+        if (enumerator.Current.IsSuccess)
+        {
+            return true;
+        }
+
+        EnqueueAndCommit(enumerator.Current);
+
+        return false;
+    }
+
     public Result<T> HandleException<T>(Exception ex, ErrorType errorType = default, string? message = default)
     {
         EnqueueAndCommit<T>(Result<T>.Failure(exception: ex, errorType: errorType));

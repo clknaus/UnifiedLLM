@@ -10,4 +10,5 @@ public interface ICommandHandler<TOut>
 public interface ICommandHandler<TIn, TOut>
 {
     Task<Result<TOut>> HandleAsync(TIn obj, CancellationToken? cancellationToken = default);
+    IAsyncEnumerable<Result<TOut>> HandleStreamAsync(TIn obj, CancellationToken? cancellationToken = default);
 }

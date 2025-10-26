@@ -11,4 +11,6 @@ public interface IChatService
     //Task<ChatResponse> CreateChatCompletionWithToolsAsync(ChatRequest request, IEnumerable<ToolDefinition> tools, ToolChoice toolChoice = null, CancellationToken cancellationToken = default);
     //Task<ChatResponse> CreateChatCompletionWithUserAsync(ChatRequest request, string userId, CancellationToken cancellationToken = default);
     //Task<ChatResponse> CreateChatCompletionWithJsonModeAsync(ChatRequest request, CancellationToken cancellationToken = default);
+    IAsyncEnumerable<Result<IChatResponse>> CreateChatCompletionStreamAsync(IChatRequest request, CancellationToken cancellationToken = default);
+
 }

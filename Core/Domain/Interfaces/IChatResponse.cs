@@ -1,5 +1,6 @@
 ﻿using Core.Domain.Entities;
 using Core.Domain.Models;
+using Core.General.Models;
 using System.Collections.Generic;
 
 namespace Core.Domain.Interfaces;
