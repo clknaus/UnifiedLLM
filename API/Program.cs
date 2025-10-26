@@ -78,6 +78,17 @@ builder.Services
     .AddPolicyHandler(GetRetryPolicy())
     .AddPolicyHandler(GetCircuitBreakerPolicy()); // Assuming GetCircuitBreakerPolicy() is defined elsewhere
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowWebUI", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:3000")       // or restrict: .WithOrigins("http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 var dbName = $"SharedInMemoryDb-{Guid.NewGuid()}"; // Fixed name ensures sharing across scopes/instances
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseInMemoryDatabase(dbName));
@@ -95,6 +106,7 @@ var app = builder.Build();
 ChatEndpoints.Map(app);
 
 app.UseRouting();
+app.UseCors("AllowWebUI");
 //app.UseAuthentication();
 //app.MapControllers();
 
